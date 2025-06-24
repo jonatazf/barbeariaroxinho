@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <title>Roxinho's Barber</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link rel="stylesheet" href="src/css/style.css" />
+    <style>
+      /* Estilo básico para ícones da navbar */
+      .icones-nav {
+        font-size: 1.5rem;
+        color: white;
+        transition: color 0.3s;
+      }
+
+      .icones-nav:hover {
+        color: #dc3545;
+      }
+
+      /* Estilo para o footer */
+      footer {
+        background-color: #111;
+        color: #ccc;
+        padding: 40px 0 20px;
+      }
+
+      footer a {
+        color: #ccc;
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        color: #fff;
+      }
+
+      .footer-icon {
+        font-size: 1.5rem;
+        margin: 0 10px;
+        color: #ccc;
+        transition: color 0.3s;
+      }
+
+      .footer-icon:hover {
+        color: #dc3545;
+      }
+
+      @media (max-width: 576px) {
+        h1 {
+          font-size: 2rem;
+        }
+
+        .btn {
+          width: 100%;
+        }
+
+        #cortesDiv .btn {
+          width: auto;
+        }
+
+        .footer-text {
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+
+  <body style="background-color: black">
+    <header>
+      <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">
+            <img src="src/img/logo-removebg-preview.png" alt="Logo" height="50" />
+          </a>
+
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+              <li class="nav-item"><a class="nav-link text-white" href="#">Início</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="#">Roxinho's</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="#">Serviços</a></li>
+              <li class="nav-item"><a class="nav-link text-white" href="#">Galeria</a></li>
+            </ul>
+            <span class="navbar-text d-flex">
+              <a href="#" class="me-3"><i class="bi bi-whatsapp icones-nav"></i></a>
+              <a href="#"><i class="bi bi-instagram icones-nav"></i></a>
+            </span>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+<!-- Seção Hero (Inicial) -->
+<div id="heroSection" class="container-fluid d-flex align-items-center justify-content-center" style="
+    background-color: #000;
+    color: #fff;
+    min-height: 100vh;
+    background-image: url('src/img/barber-bg.jpg'); /* Adicione sua imagem de fundo */
+    background-size: cover;
+    background-position: center;
+    position: relative;
+">
+    <!-- Overlay escuro para melhor legibilidade -->
+    <div style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    "></div>
+    
+    <div class="text-center position-relative z-index-1" style="z-index: 2;">
+        <!-- Título principal -->
+        <h1 class="display-3 fw-bold mb-0" style="letter-spacing: 5px;">ROXINHOS'S</h1>
+        <h1 class="display-3 fw-bold mb-4" style="letter-spacing: 5px;">BARBER</h1>
+        
+        <!-- Botão SAIBA MAIS -->
+        <a href="#historiaDiv" class="btn btn-outline-light btn-lg px-5 py-3 rounded-0" style="
+            letter-spacing: 2px;
+            font-weight: 600;
+            border-width: 2px;
+            transition: all 0.3s;
+        ">
+            SAIBA MAIS
+        </a>
+    </div>
+</div>
+
+      <section id="historiaDiv" class="container-fluid py-5 text-white">
+        <div class="row justify-content">
+          <div class="col-md-8 ms-auto">
+            <h2>Sobre a Barbearia</h2>
+            <p class="h3">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Id,
+              nostrum et temporibus porro corrupti numquam quae nihil
+              consequatur suscipit facere quisquam ratione voluptas perferendis
+              magni amet ipsum veritatis aperiam reprehenderit.
+            </p>
+            <h2 class="mt-5">Nossa História</h2>
+            <p class="h3">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Id,
+              nostrum et temporibus porro corrupti numquam quae nihil
+              consequatur suscipit facere quisquam ratione voluptas perferendis
+              magni amet ipsum veritatis aperiam reprehenderit.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div id="cortesDiv" class="container-fluid py-5" style="background-color: #1a1a1a; color: white">
+        <div class="row justify-content-center">
+          <div class="col-md-10">
+            <!-- Corte 1 -->
+            <div class="row align-items-center mb-4">
+              <div class="col-md-9 col-8">
+                <h4 style="font-weight: 600">CORTE SOCIAL</h4>
+                <p class="mb-0" style="font-size: 0.9rem">
+                  O estilo de corte ideal para você está aqui!
+                </p>
+              </div>
+              <div class="col-md-3 col-4 text-end">
+                <a class="btn btn-danger w-50" href="#" role="button"><h5 class="mb-0">R$24,99</h5></a>
+              </div>
+            </div>
+      
+            <!-- Corte 2 -->
+            <div class="row align-items-center mb-4">
+              <div class="col-md-9 col-8">
+                <h4 style="font-weight: 600">NAVALHADO</h4>
+                <p class="mb-0" style="font-size: 0.9rem">
+                  Aquela navalhada boa pra ficar na régua.
+                </p>
+              </div>
+              <div class="col-md-3 col-4 text-end">
+                <a class="btn btn-danger w-50" href="#" role="button"><h5 class="mb-0">R$24,99</h5></a>
+              </div>
+            </div>
+      
+            <!-- Corte 3 -->
+            <div class="row align-items-center mb-4">
+              <div class="col-md-9 col-8">
+                <h4 style="font-weight: 600">BARBA</h4>
+                <p class="mb-0" style="font-size: 0.9rem">
+                  Domine a arte da barba perfeita!
+                </p>
+              </div>
+              <div class="col-md-3 col-4 text-end">
+                <a class="btn btn-danger w-50" href="#" role="button"><h5 class="mb-0">R$29,99</h5></a>
+              </div>
+            </div>
+      
+            <!-- Corte 4 -->
+            <div class="row align-items-center mb-4">
+              <div class="col-md-9 col-8">
+                <h4 style="font-weight: 600">SOBRANCELHA</h4>
+                <p class="mb-0" style="font-size: 0.9rem">
+                  Definição e modelagem precisas para realçar seu olhar.
+                </p>
+              </div>
+              <div class="col-md-3 col-4 text-end">
+                <a class="btn btn-danger w-50" href="#" role="button"><h5 class="mb-0">R$19,99</h5></a>
+              </div>
+            </div>
+      
+            <!-- Corte 5 -->
+            <div class="row align-items-center mb-4">
+              <div class="col-md-9 col-8">
+                <h4 style="font-weight: 600">COMPLETO</h4>
+                <p class="mb-0" style="font-size: 0.9rem">
+                  Combinação perfeita de serviços para um visual completo.
+                </p>
+              </div>
+              <div class="col-md-3 col-4 text-end">
+                <a class="btn btn-danger w-50" href="#" role="button"><h5 class="mb-0">R$9,99</h5></a>
+              </div>
+            </div>
+      
+            <!-- Corte 6 -->
+            <div class="row align-items-center mb-4">
+              <div class="col-md-9 col-8">
+                <h4 style="font-weight: 600">PINTAR</h4>
+                <p class="mb-0" style="font-size: 0.9rem">
+                  Aquela pintura pra ficar na picota.
+                </p>
+              </div>
+              <div class="col-md-3 col-4 text-end">
+                <a class="btn btn-danger w-50" href="#" role="button"><h5 class="mb-0">R$59,99</h5></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="text-white">
+      <div class="container">
+        <div class="row justify-content-between align-items-center">
+          <div class="col-md-6 footer-text">
+            <p>&copy; 2025 Roxinho's Barber. Todos os direitos reservados.</p>
+          </div>
+          <div class="col-md-6 text-md-end text-center">
+            <a href="#"><i class="bi bi-whatsapp footer-icon"></i></a>
+            <a href="#"><i class="bi bi-instagram footer-icon"></i></a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"
+    ></script>
+  </body>
+</html>
