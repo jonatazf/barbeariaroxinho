@@ -1,26 +1,23 @@
 CREATE DATABASE Barbearia;
 USE Barbearia;
 
-CREATE TABLE Cliente(
-Cli_id INT AUTO_INCREMENT Primary Key NOT NULL,
-Cli_email VARCHAR(255) NOT NULL,
-Cli_nome VARCHAR(255) NOT NULL,
-Cli_cpf VARCHAR (15) NOT NULL,
-Cli_tel VARCHAR(14) NOT NULL
+CREATE TABLE usuario(
+usuario_id INT AUTO_INCREMENT Primary Key NOT NULL,
+usuario_email VARCHAR(255) NOT NULL,
+usuario_nome VARCHAR(255) NOT NULL,
+usuario_senha VARCHAR(255) NOT NULL,
+usuario_cpf VARCHAR (15) NOT NULL,
+usuario_tel VARCHAR(14) NOT NULL
+usuario_adm boolean NOT NULL,
 );
 
-CREATE TABLE Administrador(
-Adm_id INT NOT NULL AUTO_INCREMENT Primary Key NOT NULL,
-Adm_usuario VARCHAR(255) NOT NULL,
-Adm_senha VARCHAR(255) NOT NULL,
-Adm_email VARCHAR(255) NOT NULL
-);
 
 CREATE TABLE Corte(
-Cor_id INT AUTO_INCREMENT Primary Key NOT NULL,
-Cor_nome VARCHAR(255) NOT NULL,
-Cor_preco DECIMAL(10,2) NOT NULL,
-Cor_descricao VARCHAR(255)
+Corte_id INT AUTO_INCREMENT Primary Key NOT NULL,
+Corte_nome VARCHAR(255) NOT NULL,
+corte_foto VARCHAR(255) NOT NULL,
+Corte_preco DECIMAL(10,2) NOT NULL,
+Corte_descricao VARCHAR(255)
 );
 
 CREATE TABLE Agendamento(
