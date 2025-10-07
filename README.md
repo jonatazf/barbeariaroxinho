@@ -30,13 +30,10 @@ Divulgação Limitada: Dependência da comunicação oral, o que reduz a captaç
 💻 Solução Proposta
 Desenvolveremos um sistema integrado, dividido em duas plataformas principais:
 
-1. Sistema Web (para Clientes)
+Sistema Web (para Clientes)
 Agendamento Digital: Clientes poderão se cadastrar e agendar horários de forma autônoma e rápida pelo site.
 
 Otimização de Tempo: Redução drástica da necessidade de respostas manuais e interrupções.
-
-2. Aplicativo Mobile (para o Proprietário)
-Visualização Diária: O proprietário poderá visualizar a agenda do dia de forma clara e em tempo real.
 
 Gestão de Tempo: Funcionalidade para estimativa do tempo médio de cada corte, facilitando a administração do fluxo de trabalho.
 
