@@ -58,15 +58,13 @@ Backend / Lógica
 
 PHP (Hypertext Preprocessor)
 
-Integração do sistema web e mobile com o banco de dados, validação de dados e processamento de formulários.
+Integração do sistema web com o banco de dados, validação de dados e processamento de formulários.
 
 Banco de Dados
 
 MySQL
 
 Armazenamento seguro e eficiente dos dados de clientes, agendamentos, finanças e estoque.
-
-Aplicativo Mobile
 
 React Native
 
