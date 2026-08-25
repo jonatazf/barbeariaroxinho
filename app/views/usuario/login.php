@@ -1,140 +1,148 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+
+// Redireciona se já estiver logado
+if (isset($_SESSION['usuario_id'])) {
+    // Redireciona para o painel de admin ou para a home, dependendo do tipo de usuário
+    if (isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] == 1) {
+        header("Location: ../admin/dashboard.php");
+    } else {
+        header("Location: ../../public/index.php");
+    }
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login | Roxinho's Barber</title>
+    <meta charset="UTF-8" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Roxinho's Barber</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="../../public/icon.ico" type="image/x-icon" />
+    <style>
+        :root { --cor-fundo: #121212; --cor-fundo-card: #1f1f2e; --cor-texto: #fff; --cor-primaria: #a855f7; --cor-secundaria: #eab308; }
+        body { font-family: 'Barlow Condensed', sans-serif; background-image: url('../../public/assets/img/background.png'); color: var(--cor-texto); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px 0;}
+        .card-login { background-color: var(--cor-fundo-card); border: 1px solid var(--cor-primaria); border-radius: 15px; max-width: 450px; width: 100%; }
+        .card-title { font-size: 2rem; color: var(--cor-primaria); font-weight: bold; }
+        .form-label { color: white; }
+        
+        /* Ajustes para o Input Group (Olhinho) */
+        .input-group .form-control-dark {
+            border-right: none; /* Remove borda direita para colar no botão */
+        }
+        .input-group .btn-reveal {
+            background-color: #2a2a3e;
+            border: 1px solid var(--cor-primaria);
+            border-left: none; /* Remove borda esquerda */
+            color: #fff;
+        }
+        .input-group .btn-reveal:hover {
+            background-color: #3b3b54;
+            color: var(--cor-primaria);
+        }
+        /* Foco no grupo */
+        .form-control-dark:focus, .btn-reveal:focus {
+            border-color: var(--cor-primaria);
+            box-shadow: none; /* Remove sombra padrão para não quebrar o layout */
+        }
+        /* Borda iluminada no grupo inteiro ao focar no input */
+        .input-group:focus-within {
+            box-shadow: 0 0 0 0.25rem rgba(168, 85, 247, 0.25);
+            border-radius: 0.375rem;
+        }
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="icon" href="../../public/icon.ico" type="image/x-icon" />
+        .form-control-dark { background-color: #2a2a3e; color: white; border: 1px solid var(--cor-primaria); }
+        
+        /* Regra específica para input isolado (sem grupo) */
+        .form-control-dark:not(.input-group > .form-control-dark):focus { 
+            background-color: #2a2a3e; color: #fff; box-shadow: 0 0 0 0.25rem rgba(168, 85, 247, 0.25); 
+        }
 
-  <style>
-    body {
-      font-family: 'Barlow Condensed', sans-serif;
-      background-color: #121212;
-      color: #fff;
-      min-height: 100vh;
-    }
-    .login-container {
-      max-width: 400px;
-      margin: 10vh auto;
-      background: #181828;
-      padding: 36px 30px;
-      border-radius: 18px;
-      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-    }
-    .login-title {
-      color: #d633ff;
-      font-weight: bold;
-      font-size: 2.2rem;
-      margin-bottom: 8px;
-      text-align: center;
-    }
-    input:focus{
-      color: #fff;
-    }
-    .form-label {
-      color: #fff;
-      font-size: 1.1rem;
-      font-weight: 700;
-    }
-    .form-control, .form-select {
-      background-color: #1f1f2e !important;
-      color: #fff !important;
-      border-radius: 14px;
-      padding: 14px;
-      border: 1.5px solid #d633ff;
-      margin-bottom: 18px;
-      font-size: 1.15rem;
-    }
-    .btn-purple {
-      background: #d633ff;
-      color: #fff;
-      font-weight: bold;
-      padding: 12px 18px;
-      font-size: 1.15rem;
-      border-radius: 30px;
-      width: 100%;
-      margin-bottom: 12px;
-      border: none;
-      transition: 0.3s;
-    }
-    .btn-purple:hover {
-      background: #b026d1;
-      color: #fff;
-    }
-    .social-login {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    .link-register {
-      display: block;
-      text-align: center;
-      margin-top: 20px;
-      color: #d633ff;
-      font-weight: 600;
-      text-decoration: none;
-    }
-    .link-register:hover {
-      color: #e6b800;
-    }
-  </style>
+        .btn-purple { background-color: var(--cor-primaria); color: white; border: none; font-weight: bold; }
+        .btn-purple:hover { background-color: #9333ea; }
+        
+        .login-header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .login-header a {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--cor-primaria) !important;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="login-container">
-    <div class="login-title"><i class="bi bi-person-circle"></i> Login</div>
-    <form method="POST" action="../../controllers/UsuarioController.php">
-      <label class="form-label" for="user_or_email">Usuário ou Email</label>
-      <input type="texavt" class="form-control" name="user_or_email" id="user_or_email" required placeholder="Digite seu usuário ou email">
+    <header class="login-header">
+        <a href="../../public/index.php">ROXINHO'S</a>
+    </header>
 
-      <label class="form-label" for="senha">Senha</label>
-      <input type="password" class="form-control" name="senha" id="senha" required placeholder="Digite sua senha">
+    <div class="card card-login p-4 p-md-5">
+        <div class="card-body">
+            <h2 class="card-title text-center mb-4"><i class="bi bi-box-arrow-in-right me-2"></i>Login</h2>
 
-      <button type="submit" class="btn btn-purple" name="login">Entrar</button>
+            <?php if(isset($_GET['erro'])):
+                $mensagem_erro = '';
+                switch ($_GET['erro']) {
+                    case '1': $mensagem_erro = 'Email/usuário ou senha inválidos. Tente novamente.'; break;
+                    case '2': $mensagem_erro = 'Por favor, preencha todos os campos.'; break;
+                    case 'precisa_logar': $mensagem_erro = 'Você precisa fazer login para poder agendar um horário.'; break;
+                    case 'acessonegado': $mensagem_erro = 'Você não tem permissão para acessar esta página.'; break;
+                    default: $mensagem_erro = 'Ocorreu um erro inesperado.'; break;
+                }
+            ?>
+                <div class="alert alert-danger"><?php echo $mensagem_erro; ?></div>
+            <?php endif; ?>
+            
+            <?php if(isset($_GET['cadastro']) && $_GET['cadastro'] === 'sucesso'): ?>
+                <div class="alert alert-success">Cadastro realizado com sucesso! Faça seu login.</div>
+            <?php endif; ?>
 
-      <a class="link-register" href="registro.php">Não possui conta? Cadastre-se</a>
-    </form>
-  </div>
+            <form action="../../controllers/UsuarioController.php" method="POST">
+                <input type="hidden" name="acao" value="login">
+                <div class="mb-3">
+                    <label for="user_or_email" class="form-label">Email ou Nome de Usuário</label>
+                    <input type="text" class="form-control form-control-dark" id="user_or_email" name="user_or_email" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="senha" class="form-label">Senha</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control form-control-dark" id="senha" name="senha" required>
+                        <button class="btn btn-reveal" type="button" id="toggleSenha">
+                            <i class="bi bi-eye-slash" id="iconeOlho"></i>
+                        </button>
+                    </div>
+                </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+                <div class="d-grid"><button type="submit" class="btn btn-purple btn-lg">Entrar</button></div>
+                <div class="text-center mt-3 text-white"><p>Não tem uma conta? <a href="registro.php" style="color: var(--cor-secundaria);">Cadastre-se</a></p></div>
+                <div class="text-center mt-3 text-white"><p><a href="registro.php" style="color: var(--cor-secundaria);">Esqueceu a senha?</a></p></div>
+            </form>
+        </div>
+    </div>
 
-  <script>
-    // Usa URLSearchParams para pegar os parâmetros da URL de forma segura
-    const params = new URLSearchParams(window.location.search);
+    <script>
+        document.getElementById('toggleSenha').addEventListener('click', function () {
+            const senhaInput = document.getElementById('senha');
+            const iconeOlho = document.getElementById('iconeOlho');
 
-    // Verifica se existe um parâmetro 'erro'
-    if (params.has('erro')) {
-        let mensagem = '';
-        const erro = params.get('erro');
-        
-        switch (erro) {
-            case '1':
-                mensagem = 'Usuário ou senha inválidos. Tente novamente.';
-                break;
-            case '2':
-                mensagem = 'Por favor, preencha todos os campos.';
-                break;
-            case 'precisa_logar':
-                mensagem = 'Você precisa estar logado para agendar um horário.';
-                break;
-            case 'acessonegado':
-                mensagem = 'Você não tem permissão para acessar esta página.';
-                break;
-            default:
-                mensagem = 'Ocorreu um erro inesperado.';
-                break;
-        }
-        // Exibe o alerta com a mensagem de erro
-        alert(mensagem);
-    }
-
-    // Verifica se existe um parâmetro 'cadastrado' (para sucesso)
-    if (params.has('cadastrado') && params.get('cadastrado') == '1') {
-        alert('Cadastro realizado com sucesso! Por favor, faça o login.');
-    }
-</script>
+            if (senhaInput.type === 'password') {
+                senhaInput.type = 'text';
+                iconeOlho.classList.remove('bi-eye-slash');
+                iconeOlho.classList.add('bi-eye');
+            } else {
+                senhaInput.type = 'password';
+                iconeOlho.classList.remove('bi-eye');
+                iconeOlho.classList.add('bi-eye-slash');
+            }
+        });
+    </script>
 </body>
 </html>

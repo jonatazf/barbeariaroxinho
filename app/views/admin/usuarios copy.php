@@ -1,34 +1,35 @@
 <?php
-// usuarios.php
+// Inicia a sessão e faz o bloqueio de segurança
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-// VERIFICAÇÃO DE SEGURANÇA
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] != 1) {
     header("Location: ../usuario/login.php?erro=acessonegado");
     exit();
 }
-
 require_once '../../config/database.php';
 $nome_admin = $_SESSION['usuario_nome'];
 $pagina_atual_sidebar = 'usuarios';
 
 // =================================================================
-//  LÓGICA DE FILTRO E PAGINAÇÃO
+//  LÓGICA DE FILTRO E PAGINAÇÃO TOTALMENTE CORRIGIDA
 // =================================================================
 
+// 1. Pega os filtros da URL
 $busca = $_GET['busca'] ?? '';
 $filtro_tipo = $_GET['tipo'] ?? 'todos';
 
+// 2. Prepara a base das consultas
 $base_sql = " FROM usuario";
 $where_conditions = [];
 $params = [];
 $types = '';
 
+// 3. Adiciona dinamicamente os filtros à consulta, se existirem
 if (!empty($busca)) {
     $where_conditions[] = "(usuario_nome LIKE ? OR usuario_user LIKE ? OR usuario_email LIKE ?)";
     $busca_param = "%{$busca}%";
+    // Adiciona o mesmo parâmetro 3 vezes
     array_push($params, $busca_param, $busca_param, $busca_param);
     $types .= 'sss';
 }
@@ -44,7 +45,7 @@ if ($filtro_tipo === 'admin') {
 
 $where_sql = count($where_conditions) > 0 ? " WHERE " . implode(' AND ', $where_conditions) : "";
 
-// CONTA total
+// 4. CONTA o total de usuários COM o filtro aplicado
 $count_sql = "SELECT COUNT(usuario_id) as total" . $base_sql . $where_sql;
 $stmt_count = $conn->prepare($count_sql);
 if (!empty($params)) {
@@ -54,8 +55,8 @@ $stmt_count->execute();
 $total_usuarios = $stmt_count->get_result()->fetch_assoc()['total'];
 $stmt_count->close();
 
-// Paginação
-$usuarios_por_pagina = 25;
+// 5. Lógica de Paginação
+$usuarios_por_pagina = 50;
 $total_paginas = $total_usuarios > 0 ? ceil($total_usuarios / $usuarios_por_pagina) : 1;
 $pagina_atual = isset($_GET['pagina']) ? (int) $_GET['pagina'] : 1;
 if ($pagina_atual < 1)
@@ -64,7 +65,7 @@ if ($pagina_atual > $total_paginas)
     $pagina_atual = $total_paginas;
 $offset = ($pagina_atual - 1) * $usuarios_por_pagina;
 
-// BUSCA usuários
+// 6. BUSCA os usuários da página atual COM o filtro
 $select_sql = "SELECT usuario_id, usuario_nome, usuario_user, usuario_email, usuario_cpf, usuario_tel, usuario_data_cadastro, usuario_tipo" . $base_sql . $where_sql . " ORDER BY usuario_id ASC LIMIT ? OFFSET ?";
 $params[] = $usuarios_por_pagina;
 $params[] = $offset;
@@ -99,17 +100,16 @@ $conn->close();
 
         body {
             font-family: 'Barlow Condensed', sans-serif;
-            background-image: url('../../public/assets/img/background.png');
+            background-color: var(--cor-fundo);
             color: var(--cor-texto);
         }
 
-        /* Sidebar fixa com z-index alto */
         .sidebar {
             position: fixed;
             top: 0;
             left: 0;
             bottom: 0;
-            z-index: 1000;
+            z-index: 1021;
             width: 250px;
             padding: 20px;
             background-color: #000;
@@ -148,7 +148,9 @@ $conn->close();
         .main-content {
             margin-left: 250px;
             padding: 30px;
-            transition: margin-left 0.3s ease;
+            transition: margin-left 0.3s ease, filter 0.3s ease;
+            filter: blur(8px);
+            pointer-events: none;
         }
 
         .card-kpi {
@@ -170,12 +172,16 @@ $conn->close();
             border: 1px solid var(--cor-primaria);
         }
 
-        /* Header Mobile Padronizado */
         .mobile-header {
             display: none;
             background-color: #000;
             padding: 10px 15px;
             align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1020;
         }
 
         .menu-toggle {
@@ -193,7 +199,23 @@ $conn->close();
             right: 0;
             bottom: 0;
             background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            z-index: 1000;
+        }
+
+        .modal-backdrop {
+            z-index: 1040 !important;
+            background-color: #000 !important;
+            opacity: 0.85 !important;
+        }
+
+        .modal {
+            z-index: 1050 !important;
+        }
+
+        #senhaModal .modal-content {
+            background-color: var(--cor-fundo-secundario);
+            color: #fff;
+            border: 1px solid var(--cor-primaria);
         }
 
         .form-check-switch .form-check-input {
@@ -223,6 +245,7 @@ $conn->close();
 
             .main-content {
                 margin-left: 0;
+                padding-top: 80px;
             }
 
             .header {
@@ -245,13 +268,11 @@ $conn->close();
     <div id="overlay" class="overlay"></div>
 
     <div class="sidebar" id="sidebar">
-        <div class="logo">ROXINHO'S BARBER <br> ADMIN</div>
+        <div class="logo">ROXINHO'S ADM</div>
         <div> Olá, <?php echo htmlspecialchars($nome_admin) ?>!</div>
-        <ul class="nav flex-column mt-3">
-            <li class="nav-item"><a class="nav-link" href="index.php"><i class="bi bi-house-door-fill me-2"></i>
-                    Início</a></li>
-            <li class="nav-item"><a class="nav-link" href="dashboard.php"><i class="bi bi-graph-up me-2"></i>
-                    Dashboard</a></li>
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="dashboard.php"><i
+                        class="bi bi-house-door-fill me-2"></i> Início</a></li>
             <li class="nav-item"><a class="nav-link" href="agendamentos.php"><i
                         class="bi bi-calendar-check-fill me-2"></i> Agendamentos</a></li>
             <li class="nav-item"><a class="nav-link active" href="usuarios.php"><i class="bi bi-people-fill me-2"></i>
@@ -264,17 +285,15 @@ $conn->close();
                     Dias Inativos</a></li>
         </ul>
         <ul class="nav flex-column logout-link">
-            <li class="nav-item"><a class="nav-link" href="../../controllers/UsuarioController.php?logout=1"><i
+            <li class="nav-item"><a class="nav-link" href="../../controllers/logout.php"><i
                         class="bi bi-box-arrow-left me-2"></i> Sair</a></li>
         </ul>
     </div>
-
     <div class="main-content" id="main-content">
         <div class="mobile-header">
             <button class="menu-toggle" id="menu-toggle"><i class="bi bi-list"></i></button>
             <div class="logo ms-3">ROXINHO'S ADM</div>
         </div>
-
         <header class="header">
             <div>
                 <h2>Gerenciamento de Usuários</h2>
@@ -345,8 +364,8 @@ $conn->close();
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <a href="forms/editarUsuario.php?id=<?= $usuario['usuario_id']; ?>"><button
-                                            class="btn btn-sm btn-outline-primary" title="Editar Usuário"><i
+                                    <a href="../../controllers/admin/editarUsuario.php?id=<?= $usuario['usuario_id']; ?>"><button
+                                            class="btn btn-sm btn-outline-light" title="Editar Usuário"><i
                                                 class="bi bi-pencil-fill"></i></button></a>
                                     <a href="../../controllers/admin/excluirUsuario.php?id=<?= $usuario['usuario_id']; ?>"><button
                                             class="btn btn-sm btn-outline-danger" title="Excluir Usuário"><i
@@ -358,7 +377,7 @@ $conn->close();
                 </table>
             </div>
         </div>
-
+*\
         <?php if ($total_paginas > 1): ?>
             <nav aria-label="Navegação de páginas" class="mt-4">
                 <ul class="pagination justify-content-center">
@@ -369,58 +388,151 @@ $conn->close();
                     $proxima_pagina_url = "?pagina=" . ($pagina_atual + 1) . "&" . $query_params;
                     $ultima_pagina_url = "?pagina=" . $total_paginas . "&" . $query_params;
                     ?>
-                    <li class="page-item <?php if ($pagina_atual <= 1)
-                        echo 'disabled'; ?>"><a class="page-link"
+                    <li class="page-item <?php if ($pagina_atual <= 1) {
+                        echo 'disabled';
+                    } ?>"><a class="page-link"
                             href="<?php echo $primeira_pagina_url; ?>">Primeira</a></li>
-                    <li class="page-item <?php if ($pagina_atual <= 1)
-                        echo 'disabled'; ?>"><a class="page-link"
+                    <li class="page-item <?php if ($pagina_atual <= 1) {
+                        echo 'disabled';
+                    } ?>"><a class="page-link"
                             href="<?php echo $anterior_pagina_url; ?>">Anterior</a></li>
-                    <li class="page-item <?php if ($pagina_atual >= $total_paginas)
-                        echo 'disabled'; ?>"><a
+                    <li class="page-item <?php if ($pagina_atual >= $total_paginas) {
+                        echo 'disabled';
+                    } ?>"><a
                             class="page-link" href="<?php echo $proxima_pagina_url; ?>">Próxima</a></li>
-                    <li class="page-item <?php if ($pagina_atual >= $total_paginas)
-                        echo 'disabled'; ?>"><a
+                    <li class="page-item <?php if ($pagina_atual >= $total_paginas) {
+                        echo 'disabled';
+                    } ?>"><a
                             class="page-link" href="<?php echo $ultima_pagina_url; ?>">Última</a></li>
                 </ul>
             </nav>
         <?php endif; ?>
     </div>
+    </div>
+
+    </div>
+    </div>
+
+    <div class="modal fade" id="senhaModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Confirme sua senha de administrador</h5>
+                </div>
+                <div class="modal-body">
+                    <input type="password" id="senhaAdmin" class="form-control form-control-dark" autocomplete="off"
+                        autofocus>
+                    <div id="senhaErroMsg" class="invalid-feedback mt-2" style="display:none;">Senha incorreta.</div>
+                </div>
+                <div class="modal-footer border-0"><button id="btnAutenticar" class="btn btn-primary">Entrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            if (menuToggle) {
-                menuToggle.addEventListener('click', () => {
-                    sidebar.classList.toggle('is-active');
-                    overlay.classList.toggle('is-active');
-                });
-                overlay.addEventListener('click', () => {
-                    sidebar.classList.remove('is-active');
-                    overlay.classList.remove('is-active');
-                });
+            const mainContent = document.getElementById('main-content');
+            const senhaModal = new bootstrap.Modal(document.getElementById('senhaModal'));
+            const senhaAdminInput = document.getElementById('senhaAdmin');
+            const btnAutenticar = document.getElementById('btnAutenticar');
+            const senhaErroMsg = document.getElementById('senhaErroMsg');
+
+            senhaModal.show();
+            document.getElementById('senhaModal').addEventListener('shown.bs.modal', () => {
+                senhaAdminInput.focus();
+            });
+
+            function desbloquearConteudo() {
+                mainContent.style.filter = 'none';
+                mainContent.style.pointerEvents = 'auto';
+                senhaModal.hide();
+                inicializarPainel();
             }
 
-            document.querySelectorAll('.admin-toggle').forEach(chk => {
-                chk.addEventListener('change', function () {
-                    const id = this.dataset.id;
-                    const isAdmin = this.checked;
-                    fetch('../../controllers/admin/adminToggle.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: 'id=' + encodeURIComponent(id) + '&is_admin=' + (isAdmin ? 1 : 0)
-                    })
-                        .then(r => r.text())
-                        .then(ret => {
-                            if (!ret.startsWith("ok")) {
-                                alert("Erro ao alterar privilégio.");
-                                this.checked = !isAdmin;
-                            }
-                        });
+            function mostrarErroSenha() {
+                senhaErroMsg.style.display = 'block';
+                senhaAdminInput.classList.add('is-invalid');
+                senhaAdminInput.value = '';
+                senhaAdminInput.focus();
+            }
+
+            function validarSenhaAdmin() {
+                btnAutenticar.disabled = true;
+                senhaErroMsg.style.display = 'none';
+                senhaAdminInput.classList.remove('is-invalid');
+
+                fetch('../../controllers/admin/verificaSenhaAdmin.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'senha=' + encodeURIComponent(senhaAdminInput.value)
+                })
+                    .then(r => r.text())
+                    .then(resp => {
+                        btnAutenticar.disabled = false;
+                        if (resp.trim() === 'ok') {
+                            desbloquearConteudo();
+                        } else {
+                            mostrarErroSenha();
+                        }
+                    }).catch(() => { btnAutenticar.disabled = false; mostrarErroSenha(); });
+            }
+
+            btnAutenticar.addEventListener('click', validarSenhaAdmin);
+            senhaAdminInput.addEventListener('keydown', e => { if (e.key === 'Enter') validarSenhaAdmin(); });
+
+            function inicializarPainel() {
+                const menuToggle = document.getElementById('menu-toggle');
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('overlay');
+                if (menuToggle) {
+                    menuToggle.addEventListener('click', () => { sidebar.classList.toggle('is-active'); overlay.classList.toggle('is-active'); });
+                    overlay.addEventListener('click', () => { sidebar.classList.remove('is-active'); overlay.classList.remove('is-active'); });
+                }
+
+                const filtroBusca = document.getElementById('filtroBusca');
+                const filtrosTipo = document.querySelectorAll('.filtro-tipo');
+                const tabela = document.getElementById('tabelaUsuarios');
+                const linhas = tabela.getElementsByTagName('tr');
+
+                function aplicarFiltros() {
+                    let textoBusca = filtroBusca.value.toLowerCase();
+                    let tipoSelecionado = document.querySelector('input[name="filtroTipo"]:checked').value;
+                    for (let linha of linhas) {
+                        let conteudoDaLinha = linha.textContent || linha.innerText;
+                        let tipoDaLinha = linha.getAttribute('data-tipo');
+                        const matchTexto = conteudoDaLinha.toLowerCase().indexOf(textoBusca) > -1;
+                        const matchTipo = (tipoSelecionado === 'todos' || tipoDaLinha === tipoSelecionado);
+                        linha.style.display = (matchTexto && matchTipo) ? "" : "none";
+                    }
+                }
+
+                filtroBusca.addEventListener('keyup', aplicarFiltros);
+                filtrosTipo.forEach(radio => radio.addEventListener('change', aplicarFiltros));
+
+                document.querySelectorAll('.admin-toggle').forEach(chk => {
+                    chk.addEventListener('change', function () {
+                        const id = this.dataset.id;
+                        const isAdmin = this.checked;
+                        fetch('../../controllers/admin/adminToggle.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: 'id=' + encodeURIComponent(id) + '&is_admin=' + (isAdmin ? 1 : 0)
+                        })
+                            .then(r => r.text())
+                            .then(ret => {
+                                if (!ret.startsWith("ok")) {
+                                    alert("Erro ao alterar privilégio.");
+                                    this.checked = !isAdmin;
+                                } else {
+                                    this.closest('tr').dataset.tipo = isAdmin ? 'admin' : 'comum';
+                                    aplicarFiltros();
+                                }
+                            });
+                    });
                 });
-            });
+            }
         });
     </script>
 

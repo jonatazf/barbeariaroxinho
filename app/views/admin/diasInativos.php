@@ -1,23 +1,16 @@
 <?php
-// estoque.php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// VERIFICAÇÃO DE SEGURANÇA
+if (session_status() === PHP_SESSION_NONE) session_start();
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] != 1) {
     header("Location: ../usuario/login.php?erro=acessonegado");
     exit();
 }
-
 require_once '../../config/database.php';
 $nome_admin = $_SESSION['usuario_nome'];
 
-// --- CONSULTA PRINCIPAL ---
-$stmt = $conn->prepare("SELECT est_id, est_nome, est_qtd FROM estoque ORDER BY est_id ASC");
-$stmt->execute();
-$todos_os_produtos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
+$stmt_dias = $conn->prepare("SELECT diaInativo_id, diaInativo_data_inativa, diaInativo_hora_inicio, diaInativo_hora_fim, diaInativo_motivo FROM dia_inativo ORDER BY diaInativo_data_inativa DESC, diaInativo_hora_inicio ASC");
+$stmt_dias->execute();
+$diasInativos = $stmt_dias->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt_dias->close();
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -26,13 +19,13 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estoque | Admin Roxinho's Barber</title>
+    <title>Dias Inativos | Admin Roxinho's Barber</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700&display=swap" rel="stylesheet">
     <link rel="icon" href="../../public/icon.ico" type="image/x-icon" />
     <style>
-        :root {
+               :root {
             --cor-fundo: #181828;
             --cor-fundo-secundario: #1f1f2e;
             --cor-texto: #f0f0f0;
@@ -184,9 +177,10 @@ $conn->close();
 </head>
 
 <body>
-
     <div id="overlay" class="overlay"></div>
-
+    <div class="mobile-header"><button class="menu-toggle" id="menu-toggle"><i class="bi bi-list"></i></button>
+        <div class="logo ms-3" style="color: var(--cor-primaria);">ROXINHO'S ADM</div>
+    </div>
     <div class="sidebar" id="sidebar">
         <div class="logo">ROXINHO'S BARBER <br> ADMIN</div>
         <div> Olá, <?php echo htmlspecialchars($nome_admin) ?>!</div>
@@ -196,8 +190,8 @@ $conn->close();
             <li class="nav-item"><a class="nav-link" href="agendamentos.php"><i class="bi bi-calendar-check-fill me-2"></i> Agendamentos</a></li>
             <li class="nav-item"><a class="nav-link" href="usuarios.php"><i class="bi bi-people-fill me-2"></i> Usuários</a></li>
             <li class="nav-item"><a class="nav-link" href="cortes.php"><i class="bi bi-scissors me-2"></i> Cortes</a></li>
-            <li class="nav-item"><a class="nav-link active" href="estoque.php"><i class="bi bi-box2-fill me-2"></i> Estoque</a></li>
-            <li class="nav-item"><a class="nav-link" href="diasInativos.php"><i class="bi bi-calendar2-x-fill me-2"></i> Dias Inativos</a></li>
+            <li class="nav-item"><a class="nav-link" href="estoque.php"><i class="bi bi-box2-fill me-2"></i> Estoque</a></li>
+            <li class="nav-item"><a class="nav-link active" href="diasInativos.php"><i class="bi bi-calendar2-x-fill me-2"></i> Dias Inativos</a></li>
         </ul>
         <ul class="nav flex-column logout-link">
             <li class="nav-item"><a class="nav-link" href="../../controllers/usuarioController.php?logout=1"><i class="bi bi-box-arrow-left me-2"></i> Sair</a></li>
@@ -205,114 +199,84 @@ $conn->close();
     </div>
 
     <div class="main-content" id="main-content">
-        <div class="mobile-header">
-            <button class="menu-toggle" id="menu-toggle"><i class="bi bi-list"></i></button>
-            <div class="logo ms-3">ROXINHO'S ADM</div>
-        </div>
-
-        <header class="header">
-            <div>
-                <h2>Gerenciamento de Estoque</h2>
-                <p class="lead">Adicione, remova e controle a quantidade de produtos.</p>
-            </div>
+        <header class="mb-4">
+            <h2>Gerenciamento de Dias Inativos</h2>
+            <p class="lead">Bloqueie datas ou períodos para evitar agendamentos.</p>
         </header>
+
+        <?php if (isset($_GET['status'])): ?>
+            <div class="alert alert-<?= (strpos($_GET['status'], 'sucesso') !== false) ? 'success' : 'danger'; ?> alert-dismissible fade show">
+                <?php
+                if ($_GET['status'] == 'sucesso_criar') echo 'Cadastrado com sucesso!';
+                if ($_GET['status'] == 'sucesso_editar') echo 'Atualizado com sucesso!';
+                if ($_GET['status'] == 'sucesso_excluir') echo 'Excluído com sucesso!';
+                if ($_GET['status'] == 'erro') echo 'Erro na operação.';
+                if ($_GET['status'] == 'erro_id') echo 'ID inválido ou não encontrado.';
+                ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
 
         <div class="card-kpi p-3 mb-4">
             <div class="row align-items-end">
-                <div class="col-lg-4 col-md-6 mb-3 mb-md-0">
-                    <label for="filtroBusca" class="form-label">Buscar Produto</label>
-                    <input type="text" id="filtroBusca" class="form-control form-control-dark"
-                        placeholder="Digite o nome do produto...">
-                </div>
-                <div class="col-lg-8 col-md-6 text-md-end">
-                    <a href="forms/criarProduto.php" class="btn btn-purple"><i class="bi bi-plus-circle-fill me-2"></i>
-                        Cadastrar Produto</a>
-                </div>
+                <div class="col-lg-5"><label class="form-label">Buscar</label><input type="text" id="filtroBusca" class="form-control form-control-dark" placeholder="Data ou motivo..."></div>
+                <div class="col-lg-7 text-md-end"><a href="forms/criarDiaInativo.php" class="btn btn-purple"><i class="bi bi-plus-circle-fill me-2"></i> Cadastrar Novo Dia Inativo</a></div>
             </div>
         </div>
 
         <div class="card-kpi p-3">
             <div class="table-responsive">
-                <table class="table table-dark-custom align-middle" id="tabelaPrincipal">
+                <table class="table table-dark-custom align-middle" id="tabelaDiasInativos">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Nome</th>
-                            <th>Quantidade</th>
+                            <th>Data</th>
+                            <th>Período</th>
+                            <th>Motivo</th>
                             <th class="text-center">Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelaEstoque">
-                        <?php if (empty($todos_os_produtos)): ?>
-                            <tr>
-                                <td colspan="4" class="text-center p-4">Nenhum produto cadastrado.</td>
-                            </tr>
-                        <?php else: ?>
-                            <?php foreach ($todos_os_produtos as $produto): ?>
+                    <tbody>
+                        <?php if (empty($diasInativos)): ?><tr>
+                                <td colspan="5" class="text-center p-4">Nenhum registro.</td>
+                            </tr><?php else: ?>
+                            <?php foreach ($diasInativos as $dia): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($produto['est_id']); ?></td>
-                                    <td><?php echo htmlspecialchars($produto['est_nome']); ?></td>
-                                    <td><?php echo htmlspecialchars($produto['est_qtd']); ?></td>
+                                    <td><?= $dia['diaInativo_id'] ?></td>
+                                    <td><?= date("d/m/Y", strtotime($dia['diaInativo_data_inativa'])) ?></td>
+                                    <td><?= ($dia['diaInativo_hora_inicio']) ? substr($dia['diaInativo_hora_inicio'], 0, 5) . ' - ' . substr($dia['diaInativo_hora_fim'], 0, 5) : 'Dia Todo' ?></td>
+                                    <td><?= htmlspecialchars($dia['diaInativo_motivo']) ?></td>
                                     <td class="text-center">
-                                        <form action="../../controllers/admin/estoqueController.php" method="POST"
-                                            class="d-inline">
-                                            <input type="hidden" name="acao" value="atualizar_qtd">
-                                            <input type="hidden" name="produto_id" value="<?php echo $produto['est_id']; ?>">
-                                            <input type="hidden" name="quantidade" value="1">
-                                            <button type="submit" class="btn btn-sm btn-outline-primary" title="Adicionar 1"><i
-                                                    class="bi bi-plus-lg"></i></button>
-                                        </form>
-
-                                        <form action="../../controllers/admin/estoqueController.php" method="POST"
-                                            class="d-inline">
-                                            <input type="hidden" name="acao" value="atualizar_qtd">
-                                            <input type="hidden" name="produto_id" value="<?php echo $produto['est_id']; ?>">
-                                            <input type="hidden" name="quantidade" value="-1">
-                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Remover 1"><i
-                                                    class="bi bi-dash-lg"></i></button>
-                                        </form>
-
-                                        <a href="forms/editarEstoque.php?id=<?php echo $produto['est_id']; ?>"
-                                            class="btn btn-sm btn-outline-primary" title="Editar Corte"><i
-                                                class="bi bi-pencil-fill"></i></a>
-                                        <a href="../../controllers/admin/estoqueController.php?acao=excluir&id=<?php echo $produto['est_id']; ?>"
-                                            class="btn btn-sm btn-outline-danger" title="Excluir Produto"
-                                            onclick="return confirm('Tem certeza que deseja excluir este produto do estoque?');">
-                                            <i class="bi bi-trash-fill"></i>
-                                        </a>
+                                        <a href="forms/editarDiaInativo.php?id=<?= $dia['diaInativo_id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-fill"></i></a>
+                                        <a href="../../controllers/admin/DiaInativoController.php?acao=excluir&id=<?= $dia['diaInativo_id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Excluir este registro?');"><i class="bi bi-trash-fill"></i></a>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                        <?php endforeach;
+                                endif; ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const menuToggle = document.getElementById('menu-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        menuToggle.addEventListener('click', () => { sidebar.classList.toggle('is-active'); overlay.classList.toggle('is-active'); });
-        overlay.addEventListener('click', () => { sidebar.classList.remove('is-active'); overlay.classList.remove('is-active'); });
-
-        // Filtro de busca
-        document.addEventListener('DOMContentLoaded', function () {
-            const filtroBusca = document.getElementById('filtroBusca');
-            filtroBusca.addEventListener('keyup', function () {
-                let filtro = this.value.toLowerCase();
-                let tabela = document.getElementById('tabelaEstoque');
-                let linhas = tabela.getElementsByTagName('tr');
-                for (let i = 0; i < linhas.length; i++) {
-                    let conteudoDaLinha = linhas[i].textContent || linhas[i].innerText;
-                    linhas[i].style.display = (conteudoDaLinha.toLowerCase().indexOf(filtro) > -1) ? "" : "none";
-                }
-            });
+        const menu = document.getElementById('menu-toggle'),
+            sidebar = document.getElementById('sidebar'),
+            overlay = document.getElementById('overlay');
+        menu.addEventListener('click', () => {
+            sidebar.classList.toggle('is-active');
+            overlay.classList.toggle('is-active');
+        });
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('is-active');
+            overlay.classList.remove('is-active');
+        });
+        document.getElementById('filtroBusca').addEventListener('keyup', function() {
+            let val = this.value.toLowerCase(),
+                rows = document.querySelectorAll('#tabelaDiasInativos tbody tr');
+            rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(val) ? '' : 'none');
         });
     </script>
-
 </body>
 
 </html>
