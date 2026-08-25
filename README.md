@@ -60,7 +60,7 @@ Após 15 anos de atuação, o proprietário, Wlademir Roberto Bernardo ("Roxinho
 *   [Node.js](https://nodejs.org/en/) (caso utilize pacotes NPM ou para rodar o app React Native).
 
 ### Passo a Passo (Web)
-1. Clone este repositório: `git clone https://github.com/SeuUsuario/roxinhos-barber.git`
+1. Clone este repositório: `git clone https://github.com/jonatazf/roxinhos-barber.git`
 2. Mova a pasta do projeto para o diretório `htdocs` do seu XAMPP.
 3. Inicie os serviços **Apache** e **MySQL** no painel do XAMPP.
 4. Acesse `http://localhost/phpmyadmin` e crie um banco de dados chamado `roxinho_db`.
