@@ -1,84 +1,80 @@
-BARBEARIA ROXINHO
+# 💈 Roxinho's Barber - Sistema de Gestão e Agendamento
 
-💈 Informatização e Gestão Digital: Roxinho's Barber
-Este projeto consiste no desenvolvimento de um sistema web e um aplicativo mobile para a Roxinho's Barber, uma barbearia de pequeno porte em São Paulo, visando a modernização e automatização de seus processos de gestão.
+![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 
-🎯 Objetivo do Projeto
-Após 15 anos de atuação, o proprietário, Wlademir Roberto Bernardo ("Roxinho"), enfrenta desafios típicos da gestão manual. Nosso objetivo principal é introduzir a tecnologia para otimizar a rotina do estabelecimento, permitindo que o cliente se dedique mais à sua paixão: o corte de cabelo.
+Este projeto consiste no desenvolvimento de um sistema web e um aplicativo mobile para a **Roxinho's Barber**, uma barbearia de pequeno porte localizada em São Paulo. O foco é a modernização, automatização dos processos de gestão e melhora na experiência do cliente.
 
-A solução visa:
+---
 
-Automatizar o processo de agendamento de clientes.
+## 🎯 Objetivo do Projeto
 
-Organizar a agenda do barbeiro de forma digital.
+Após 15 anos de atuação, o proprietário, Wlademir Roberto Bernardo ("Roxinho"), enfrenta desafios típicos da gestão manual. Nosso objetivo principal é introduzir a tecnologia para otimizar a rotina do estabelecimento, permitindo que o profissional se dedique integralmente à sua paixão: o corte de cabelo.
 
-Melhorar o controle financeiro (entradas e saídas).
+---
 
-Auxiliar na divulgação eficiente do negócio.
+## 🛑 O Problema vs. 💡 A Solução
 
-🛑 Problemas Identificados (Problematização)
-A falta de informatização na Roxinho's Barber gera gargalos operacionais que comprometem o tempo e a eficiência do negócio:
+| Desafios da Gestão Manual (Antes) | Solução Digital Implementada (Depois) |
+| :--- | :--- |
+| **Comunicação Interrompida:** O proprietário parava constantemente para agendar clientes via WhatsApp. | **Agendamento Autônomo:** Clientes marcam seus próprios horários pelo sistema web de forma rápida. |
+| **Agendamento Desorganizado:** Marcações em papel geravam erros, duplicidades e dificultavam encaixes. | **Agenda Digital:** Organização automatizada com estimativa de tempo médio para cada serviço. |
+| **Falta de Controle Financeiro:** Dificuldade em visualizar a lucratividade, entradas e saídas. | **Dashboard Administrativo:** Acompanhamento financeiro detalhado e gestão inteligente de estoque. |
+| **Divulgação Limitada:** Dependência exclusiva do "boca a boca". | **Presença Digital:** Sistema online que facilita a captação de novos clientes e fortalece a marca. |
 
-Comunicação Manual: O proprietário precisa parar constantemente para responder manualmente a clientes via WhatsApp, consumindo tempo e causando interrupções no atendimento presencial.
+---
 
-Agendamento Desorganizado: Agendamentos anotados à mão aumentam o risco de erros (como marcações duplicadas) e dificultam o encaixe de novos clientes.
+## 💻 Funcionalidades Principais
 
-Ausência de Controle Financeiro Detalhado: A gestão financeira manual dificulta a clareza sobre a lucratividade (entradas e saídas), impedindo a tomada de decisões estratégicas.
+### Para o Cliente (Interface Web)
+*   Cadastro e login seguro.
+*   Visualização de horários disponíveis em tempo real.
+*   Agendamento e cancelamento de serviços de forma autônoma.
 
-Divulgação Limitada: Dependência da comunicação oral, o que reduz a captação de novos clientes e limita o potencial de crescimento da marca.
+### Para o Administrador (Painel Web & Mobile)
+*   **Gestão de Agenda:** Visão completa dos agendamentos do dia/semana.
+*   **Controle de Estoque:** Histórico de movimentações e alertas de reposição de produtos.
+*   **Gestão Financeira:** Registro de entradas e saídas do caixa.
 
-💻 Solução Proposta
-Desenvolveremos um sistema integrado, dividido em duas plataformas principais:
+---
 
-Sistema Web (para Clientes)
-Agendamento Digital: Clientes poderão se cadastrar e agendar horários de forma autônoma e rápida pelo site.
+## 🧪 Tecnologias Utilizadas
 
-Otimização de Tempo: Redução drástica da necessidade de respostas manuais e interrupções.
+| Categoria | Tecnologia | Aplicação no Projeto |
+| :--- | :--- | :--- |
+| **Frontend Web** | HTML5, CSS3, JavaScript | Estruturação, estilização e interatividade das telas de agendamento e painel. |
+| **Backend** | PHP | Regras de negócio, rotinas de autenticação, validação e integração com o banco. |
+| **Banco de Dados** | MySQL | Armazenamento relacional seguro de usuários, agendamentos, estoque e finanças. |
+| **Mobile** | React Native | Desenvolvimento do aplicativo proprietário para Android, consumindo a mesma base de dados. |
 
-Gestão de Tempo: Funcionalidade para estimativa do tempo médio de cada corte, facilitando a administração do fluxo de trabalho.
+---
 
-Controle Financeiro e Estoque (Resultados Esperados): Implementação de um dashboard para acompanhamento de entradas e saídas, além de um gestor de estoque.
+## 🚀 Como Executar o Projeto
 
-🧪 Metodologia e Tecnologias Utilizadas
-Para garantir um sistema funcional, escalável e alinhado às práticas do mercado, utilizaremos as seguintes tecnologias:
+*(Dica: Substitua as instruções abaixo pelos passos exatos do seu projeto)*
 
-Categoria
+### Pré-requisitos
+*   [XAMPP](https://www.apachefriends.org/pt_br/index.html) ou similar (para rodar o servidor Apache e o MySQL).
+*   [Node.js](https://nodejs.org/en/) (caso utilize pacotes NPM ou para rodar o app React Native).
 
-Tecnologia
+### Passo a Passo (Web)
+1. Clone este repositório: `git clone https://github.com/SeuUsuario/roxinhos-barber.git`
+2. Mova a pasta do projeto para o diretório `htdocs` do seu XAMPP.
+3. Inicie os serviços **Apache** e **MySQL** no painel do XAMPP.
+4. Acesse `http://localhost/phpmyadmin` e crie um banco de dados chamado `roxinho_db`.
+5. Importe o arquivo `database.sql` (localizado na pasta `/sql`) para o banco criado.
+6. Acesse o sistema pelo navegador em: `http://localhost/roxinhos-barber`.
 
-Uso no Projeto
+---
 
-Frontend Web
+## 🤝 Desenvolvedores
 
-HTML, CSS, JavaScript
+Projeto de Conclusão de Curso (TCC) desenvolvido pelos alunos do curso Técnico em Desenvolvimento de Sistemas da **ETEC Jardim Ângela** (São Paulo):
 
-Estruturação, estilização e interatividade da interface do site de agendamento.
-
-Backend / Lógica
-
-PHP (Hypertext Preprocessor)
-
-Integração do sistema web com o banco de dados, validação de dados e processamento de formulários.
-
-Banco de Dados
-
-MySQL
-
-Armazenamento seguro e eficiente dos dados de clientes, agendamentos, finanças e estoque.
-
-React Native
-
-Desenvolvimento do aplicativo proprietário para Android, utilizando o mesmo banco de dados do sistema web.
-
-🤝 Desenvolvedores
-Projeto de Conclusão de Curso (TCC) desenvolvido pelos alunos da ETEC Jardim Ângela (São Paulo):
-
-Guilherme Carvalho Costa
-
-Jonatas Soares Ferreira
-
-Lucas Rolim de Amorim
-
-Marcos Gomes dos Santos
-
-Vinicius Fernandes Oliveira Silva
+*   **Guilherme Carvalho Costa**
+*   **Jonatas Soares Ferreira**
+*   **Lucas Rolim de Amorim**
+*   **Marcos Gomes dos Santos**
+*   **Vinicius Fernandes Oliveira Silva**
