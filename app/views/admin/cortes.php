@@ -1,26 +1,23 @@
 <?php
-// Inicia a sessão
+// cortes.php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// BLOQUEIO DE SEGURANÇA: Apenas admins logados podem ver
+// VERIFICAÇÃO DE SEGURANÇA
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] != 1) {
     header("Location: ../usuario/login.php?erro=acessonegado");
     exit();
 }
 
-// Inclui a conexão com o banco de dados
 require_once '../../config/database.php';
 $nome_admin = $_SESSION['usuario_nome'];
 
-// --- CONSULTA PRINCIPAL: Buscar todos os CORTES ---
-$stmt = $conn->prepare("SELECT corte_id, corte_nome, corte_preco, corte_descricao FROM corte ORDER BY corte_nome ASC");
+// --- CONSULTA PRINCIPAL ---
+$stmt = $conn->prepare("SELECT corte_id, corte_nome, corte_preco, corte_descricao FROM corte ORDER BY corte_id ASC");
 $stmt->execute();
-// **CORRIGIDO:** A variável agora se chama $todos_os_cortes
 $todos_os_cortes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
-
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -45,8 +42,20 @@ $conn->close();
 
         body {
             font-family: 'Barlow Condensed', sans-serif;
-            background-color: var(--cor-fundo);
+            background-image: url('../../public/assets/img/background.png');
             color: var(--cor-texto);
+        }
+
+        .btn-purple {
+            background-color: var(--cor-primaria);
+            border-color: var(--cor-primaria);
+            color: #fff;
+        }
+
+        .btn-purple:hover {
+            background-color: #8722a0ff;
+            border-color: #8722a0ff;
+            color: #fff;
         }
 
         .sidebar {
@@ -90,13 +99,11 @@ $conn->close();
             margin-top: auto;
         }
 
+        /* CONTEÚDO DESBLOQUEADO */
         .main-content {
             margin-left: 250px;
             padding: 30px;
             transition: margin-left 0.3s ease;
-            filter: blur;
-            pointer-events: none;
-            user-select: none;
         }
 
         .card-kpi {
@@ -150,6 +157,7 @@ $conn->close();
             z-index: 999;
         }
 
+        /* CORREÇÃO AQUI: Layout Responsivo */
         @media(max-width: 992px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -163,8 +171,17 @@ $conn->close();
                 margin-left: 0;
             }
 
+            /* AQUI ESTÁ A MUDANÇA PARA O BOTÃO APARECER */
             .header {
-                display: none;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            .header a,
+            .header button {
+                width: 100%;
             }
 
             .mobile-header {
@@ -175,17 +192,6 @@ $conn->close();
                 display: block;
             }
         }
-
-        /* Modal styles */
-        .modal-backdrop {
-            background-color: #000 !important;
-            opacity: 0.85 !important;
-        }
-
-        #senhaModal .modal-content {
-            background-color: #222;
-            color: #fff;
-        }
     </style>
 </head>
 
@@ -193,23 +199,19 @@ $conn->close();
     <div id="overlay" class="overlay"></div>
 
     <div class="sidebar" id="sidebar">
-        <div class="logo">ROXINHO'S ADM</div>
-        <div> Olá, <?php echo htmlspecialchars($nome_admin); ?>!</div>
-        <ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link" href="dashboard.php"><i
-                        class="bi bi-house-door-fill me-2"></i> Início</a></li>
-            <li class="nav-item"><a class="nav-link" href="agendamentos.php"><i
-                        class="bi bi-calendar-check-fill me-2"></i> Agendamentos</a></li>
-            <li class="nav-item"><a class="nav-link" href="usuarios.php"><i
-                        class="bi bi-people-fill me-2"></i> Usuários</a></li>
-            <li class="nav-item"><a class="nav-link active" href="cortes.php"><i
-                        class="bi bi-scissors me-2"></i> Cortes</a></li>
-            <li class="nav-item"><a class="nav-link" href="estoque.php"><i class="bi bi-box2-fill me-2"></i>
-                    Estoque</a></li>
+        <div class="logo">ROXINHO'S BARBER <br> ADMIN</div>
+        <div> Olá, <?php echo htmlspecialchars($nome_admin) ?>!</div>
+        <ul class="nav flex-column mt-3">
+            <li class="nav-item"><a class="nav-link" href="index.php"><i class="bi bi-house-door-fill me-2"></i> Início</a></li>
+            <li class="nav-item"><a class="nav-link" href="dashboard.php"><i class="bi bi-graph-up me-2"></i> Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="agendamentos.php"><i class="bi bi-calendar-check-fill me-2"></i> Agendamentos</a></li>
+            <li class="nav-item"><a class="nav-link" href="usuarios.php"><i class="bi bi-people-fill me-2"></i> Usuários</a></li>
+            <li class="nav-item"><a class="nav-link active" href="cortes.php"><i class="bi bi-scissors me-2"></i> Cortes</a></li>
+            <li class="nav-item"><a class="nav-link" href="estoque.php"><i class="bi bi-box2-fill me-2"></i> Estoque</a></li>
+            <li class="nav-item"><a class="nav-link" href="diasInativos.php"><i class="bi bi-calendar2-x-fill me-2"></i> Dias Inativos</a></li>
         </ul>
         <ul class="nav flex-column logout-link">
-            <li class="nav-item"><a class="nav-link" href="../../controllers/logout.php"><i
-                        class="bi bi-box-arrow-left me-2"></i> Sair</a></li>
+            <li class="nav-item"><a class="nav-link" href="../../controllers/UsuarioController.php?logout=1"><i class="bi bi-box-arrow-left me-2"></i> Sair</a></li>
         </ul>
     </div>
 
@@ -224,34 +226,35 @@ $conn->close();
                 <h2>Gerenciamento de Cortes</h2>
                 <p class="lead">Adicione, edite e remova os serviços oferecidos.</p>
             </div>
-        </header>
 
+            <a href="forms/adicionarCorte.php"><button class="btn btn-purple"><i
+                        class="bi bi-plus-circle-fill me-2 text-white"></i> Adicionar Corte</button></a>
+        </header>
+        <br>
         <div class="card-kpi p-3 mb-4">
-            <div class="row align-items-center">
-                <div class="col-lg-4 col-md-6 mb-3 mb-md-0">
-                    <label for="filtroBusca" class="form-label">Buscar Cortes</label>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="filtroBusca" class="form-label">Buscar por Corte</label>
                     <input type="text" id="filtroBusca" class="form-control form-control-dark"
                         placeholder="Digite o nome do corte...">
                 </div>
-                <div class="col-lg-8 col-md-6">
+                <div class="col-md-7">
                     <label class="form-label">Exibir Colunas:</label>
                     <div class="d-flex flex-wrap gap-3">
-                        <div class="form-check form-check-inline"><input class="form-check-input coluna-toggle" type="checkbox"
-                                id="checkId" value="1" checked><label class="form-check-label" for="checkId">ID</label>
-                        </div>
-                        <div class="form-check form-check-inline"><input class="form-check-input coluna-toggle" type="checkbox"
-                                id="checkNome" value="2" checked><label class="form-check-label" for="checkNome">Nome</label>
-                        </div>
-                        <div class="form-check form-check-inline"><input class="form-check-input coluna-toggle" type="checkbox"
-                                id="checkPreco" value="3" checked><label class="form-check-label"
+                        <div class="form-check form-check-inline"><input class="form-check-input coluna-toggle"
+                                type="checkbox" id="checkId" value="0" checked><label class="form-check-label"
+                                for="checkId">ID</label></div>
+                        <div class="form-check form-check-inline"><input class="form-check-input coluna-toggle"
+                                type="checkbox" id="checkNome" value="1" checked><label class="form-check-label"
+                                for="checkNome">Nome</label></div>
+                        <div class="form-check form-check-inline"><input class="form-check-input coluna-toggle"
+                                type="checkbox" id="checkPreco" value="2" checked><label class="form-check-label"
                                 for="checkPreco">Preço</label></div>
-                        <div class="form-check form-check-inline"><input class="form-check-input coluna-toggle" type="checkbox"
-                                id="checkDesc" value="4"><label class="form-check-label" for="checkDesc">Descrição</label>
-                        </div>
-                        <div class="form-check form-check-inline"><input class="form-check-input coluna-toggle" type="checkbox"
-                                id="checkFoto" value="5"><label class="form-check-label" for="checkFoto">Foto</label></div>
-                        <div class="form-check form-check-inline"><input class="form-check-input coluna-toggle" type="checkbox"
-                                id="checkAcoes" value="6" checked><label class="form-check-label"
+                        <div class="form-check form-check-inline"><input class="form-check-input coluna-toggle"
+                                type="checkbox" id="checkDesc" value="3" checked><label class="form-check-label"
+                                for="checkDesc">Descrição</label></div>
+                        <div class="form-check form-check-inline"><input class="form-check-input coluna-toggle"
+                                type="checkbox" id="checkAcoes" value="4" checked><label class="form-check-label"
                                 for="checkAcoes">Ações</label></div>
                     </div>
                 </div>
@@ -267,55 +270,34 @@ $conn->close();
                             <th>Nome</th>
                             <th>Preço</th>
                             <th>Descrição</th>
-                            <th>Foto</th>
-                            <th>Ações</th>
+                            <th class="text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tabelaCortes">
                         <?php if (empty($todos_os_cortes)): ?>
-                        <tr>
-                            <td colspan="6" class="text-center p-4">Nenhum corte cadastrado.</td>
-                        </tr>
+                            <tr>
+                                <td colspan="5" class="text-center p-4">Nenhum corte cadastrado.</td>
+                            </tr>
                         <?php else: ?>
-                        <?php foreach($todos_os_cortes as $corte): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($corte['corte_id']); ?></td>
-                            <td><?php echo htmlspecialchars($corte['corte_nome']); ?></td>
-                            <td>R$ <?php echo number_format($corte['corte_preco'], 2, ',', '.'); ?></td>
-                            <td><?php echo htmlspecialchars($corte['corte_descricao'] ?: 'N/A'); ?></td>
-                            <td><?php echo htmlspecialchars($corte['corte_foto'] ?: 'N/A'); ?></td>
-                            <td>
-                                <a href="editarCorte.php?id=<?php echo $corte['corte_id']; ?>" class="btn btn-sm btn-outline-light"
-                                    title="Editar Corte"><i class="bi bi-pencil-fill"></i></a>
-                                <a href="excluirCorte.php?id=<?php echo $corte['corte_id']; ?>" class="btn btn-sm btn-outline-danger"
-                                    title="Excluir Corte"><i class="bi bi-trash-fill"></i></a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
+                            <?php foreach ($todos_os_cortes as $corte): ?>
+                                <tr>
+                                    <td><?php echo $corte['corte_id']; ?></td>
+                                    <td><?php echo htmlspecialchars($corte['corte_nome']); ?></td>
+                                    <td>R$ <?php echo number_format($corte['corte_preco'], 2, ',', '.'); ?></td>
+                                    <td><?php echo htmlspecialchars($corte['corte_descricao'] ?: 'N/A'); ?></td>
+                                    <td class="text-center">
+                                        <a href="forms/editarCortes.php?id=<?php echo $corte['corte_id']; ?>"
+                                            class="btn btn-sm btn-outline-primary" title="Editar Corte"><i
+                                                class="bi bi-pencil-fill"></i></a>
+                                        <a href="../../controllers/admin/excluirCorte.php?id=<?php echo $corte['corte_id']; ?>"
+                                            class="btn btn-sm btn-outline-danger" title="Excluir Corte"
+                                            onclick="return confirm('Tem certeza?');"><i class="bi bi-trash-fill"></i></a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                         <?php endif; ?>
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal senha admin -->
-    <div class="modal fade" id="senhaModal" tabindex="-1" aria-labelledby="senhaModalLabel" aria-hidden="true"
-        data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="senhaModalLabel">Confirme sua senha de administrador</h5>
-                </div>
-                <div class="modal-body">
-                    <input type="password" id="senhaAdmin" class="form-control" placeholder="Senha de administrador"
-                        autocomplete="off" autofocus />
-                    <div id="senhaErroMsg" class="invalid-feedback mt-2" style="display:none;">Senha incorreta. Tente
-                        novamente.</div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button id="btnAutenticar" class="btn btn-primary">Entrar</button>
-                </div>
             </div>
         </div>
     </div>
@@ -333,75 +315,6 @@ $conn->close();
         overlay.addEventListener('click', () => {
             sidebar.classList.remove('is-active');
             overlay.classList.remove('is-active');
-        });
-
-        // Função para desbloquear conteúdo após senha correta
-        function desbloquearConteudo() {
-            const mainContent = document.getElementById('main-content');
-            mainContent.style.filter = '';
-            mainContent.style.pointerEvents = 'auto';
-            mainContent.style.userSelect = 'auto';
-
-            const senhaModal = bootstrap.Modal.getInstance(document.getElementById('senhaModal'));
-            senhaModal.hide();
-
-            const senhaErroMsg = document.getElementById('senhaErroMsg');
-            const senhaAdminInput = document.getElementById('senhaAdmin');
-            senhaErroMsg.style.display = 'none';
-            senhaAdminInput.value = '';
-            senhaAdminInput.classList.remove('is-invalid');
-        }
-
-        // Mostrar mensagem de erro no modal
-        function mostrarErro() {
-            const senhaErroMsg = document.getElementById('senhaErroMsg');
-            const senhaAdminInput = document.getElementById('senhaAdmin');
-            senhaErroMsg.style.display = 'block';
-            senhaAdminInput.classList.add('is-invalid');
-            senhaAdminInput.value = '';
-            senhaAdminInput.focus();
-        }
-
-        // Valida senha via AJAX
-        function validarSenhaAdmin() {
-            const btnAutenticar = document.getElementById('btnAutenticar');
-            const senhaAdminInput = document.getElementById('senhaAdmin');
-            btnAutenticar.disabled = true;
-            document.getElementById('senhaErroMsg').style.display = 'none';
-            senhaAdminInput.classList.remove('is-invalid');
-
-            fetch('senhaAdminCheck.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: 'senha=' + encodeURIComponent(senhaAdminInput.value)
-            }).then(r => r.text()).then(resp => {
-                btnAutenticar.disabled = false;
-                if (resp.trim() === 'ok') {
-                    desbloquearConteudo();
-                } else {
-                    mostrarErro();
-                }
-            }).catch(() => {
-                btnAutenticar.disabled = false;
-                mostrarErro();
-            });
-        }
-
-        // Inicializa modal e binds
-        document.addEventListener('DOMContentLoaded', () => {
-            const senhaModal = new bootstrap.Modal(document.getElementById('senhaModal'));
-            senhaModal.show();
-
-            const senhaAdminInput = document.getElementById('senhaAdmin');
-            senhaAdminInput.focus();
-
-            document.getElementById('btnAutenticar').addEventListener('click', validarSenhaAdmin);
-
-            senhaAdminInput.addEventListener('keydown', e => {
-                if (e.key === 'Enter') validarSenhaAdmin();
-            });
         });
 
         // Lógica dos filtros de tabela
@@ -425,7 +338,7 @@ $conn->close();
                     const isChecked = checkbox.checked;
                     const displayStyle = isChecked ? '' : 'none';
                     const celulas = document.querySelectorAll(
-                      `#tabelaPrincipal th:nth-child(${parseInt(colunaIndex) + 1}), #tabelaPrincipal td:nth-child(${parseInt(colunaIndex) + 1})`
+                        `#tabelaPrincipal th:nth-child(${parseInt(colunaIndex) + 1}), #tabelaPrincipal td:nth-child(${parseInt(colunaIndex) + 1})`
                     );
                     celulas.forEach(celula => {
                         celula.style.display = displayStyle;
