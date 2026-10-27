@@ -1,7 +1,7 @@
 <?php
-// controllers/agendamentoController.php
+// app/controllers/AgendamentoController.php
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
-require_once '../config/database.php';
+require_once __DIR__ . '/../config/database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 1. Validação inicial: usuário logado e dados mínimos
@@ -15,51 +15,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario_id = $_SESSION['usuario_id'];
 
     if (!$corte_id || empty($data_agendamento) || empty($hora_agendamento)) {
-        header("Location: ../index.php?agendamento=erro_dados");
+        header("Location: ../public/index.php?agendamento=erro_dados#servicos");
         exit();
     }
     
-    // 2. Validação de Data Passada: Impede agendamentos no passado
-    // Define o fuso horário para evitar problemas de comparação
     date_default_timezone_set('America/Sao_Paulo');
-    $dataHoraAgendamento = new DateTime($data_agendamento . ' ' . $hora_agendamento);
-    $agora = new DateTime();
-    if ($dataHoraAgendamento < $agora) {
-        header("Location: ../index.php?agendamento=erro_passado#servicos");
+
+    // 2. Validação de Dia da Semana (não permite agendar em Dom, Seg, Sáb)
+    $diaDaSemana = date('w', strtotime($data_agendamento)); // 0=Domingo, 1=Segunda, 6=Sábado
+    if (in_array($diaDaSemana, [0, 1, 6])) {
+        header("Location: ../public/index.php?agendamento=erro_diadasemana#servicos");
         exit();
     }
 
-    // 3. Validação de Conflito: Verifica se o horário já está ocupado
+    // 3. Validação de Data Passada
+    $dataHoraAgendamento = new DateTime($data_agendamento . ' ' . $hora_agendamento);
+    $agora = new DateTime();
+    if ($dataHoraAgendamento < $agora) {
+        header("Location: ../public/index.php?agendamento=erro_passado#servicos");
+        exit();
+    }
+
+    // 4. Validação de Conflito de Horário (horário já ocupado)
     $stmt_check = $conn->prepare("SELECT agen_id FROM agendamento WHERE agen_data_a = ? AND agen_hora_a = ?");
     $stmt_check->bind_param("ss", $data_agendamento, $hora_agendamento);
     $stmt_check->execute();
     $stmt_check->store_result();
     
     if ($stmt_check->num_rows > 0) {
-        // Se encontrou algum registro, o horário está ocupado
         $stmt_check->close();
-        header("Location: ../index.php?agendamento=erro_ocupado#servicos");
+        header("Location: ../public/index.php?agendamento=erro_ocupado#servicos");
         exit();
     }
     $stmt_check->close();
 
-    // 4. Se todas as validações passaram, insere no banco
+    // 5. Se todas as validações passaram, insere no banco
     $sql = "INSERT INTO agendamento (agen_data_a, agen_hora_a, usuario_id, corte_id) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ssii", $data_agendamento, $hora_agendamento, $usuario_id, $corte_id);
 
     if ($stmt->execute()) {
-        header("Location: ../index.php?agendamento=sucesso#inicio");
+        header("Location: ../public/index.php?agendamento=sucesso#inicio");
     } else {
-        // Erro genérico caso a inserção falhe por outro motivo
-        header("Location: ../index.php?agendamento=erro_salvar#servicos");
+        header("Location: ../public/index.php?agendamento=erro_salvar#servicos");
     }
     $stmt->close();
     $conn->close();
-
-} else {
-    // Se o arquivo for acessado diretamente (não via POST), redireciona para a home
-    header("Location: ../index.php");
-    exit();
 }
 ?>

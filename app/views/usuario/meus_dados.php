@@ -86,7 +86,7 @@ if (!$usuario) {
                     
                     <?php if (isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] == 1): ?>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="../admin/dashboard.php"><i class="bi bi-shield-lock-fill me-2"></i> Painel Admin</a></li>
+                        <li><a class="dropdown-item" href="../admin/index.php"><i class="bi bi-shield-lock-fill me-2"></i> Painel Admin</a></li>
                     <?php endif; ?>
                     
                     <li><hr class="dropdown-divider"></li>
@@ -136,6 +136,7 @@ if (!$usuario) {
                     </div>
 
                     <div class="text-center mt-5">
+                        <a href="editarUsuarioViews.php" class="btn btn-primary"><i class="bi bi-pencil"></i> Editar</a>
                         <a href="meus_agendamentos.php" class="btn btn-purple"><i class="bi bi-calendar-check me-2"></i> Ver Meus Agendamentos</a>
                         </div>
                 </div>

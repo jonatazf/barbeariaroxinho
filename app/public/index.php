@@ -2,7 +2,8 @@
 ini_set('display_errors', 1); error_reporting(E_ALL);
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
-require_once '../config/database.php';
+// CAMINHO CORRIGIDO: O index.php na pasta public deve subir um nível para acessar o app
+require_once __DIR__ . '/../config/database.php';
 
 $cortesResult = $conn->query("SELECT corte_id, corte_nome, corte_preco, corte_descricao FROM corte ORDER BY corte_id");
 if (!$cortesResult) { die("Erro na consulta SQL: " . $conn->error); }
@@ -39,23 +40,13 @@ if (!$cortesResult) { die("Erro na consulta SQL: " . $conn->error); }
         .dia.outro-mes { cursor: default; background-color: transparent; color: #555; border-color: transparent; }
         .dia.inativo { background-color: rgba(80, 80, 80, 0.2); color: #666; cursor: not-allowed; text-decoration: line-through; border-color: transparent; }
         .dia.selecionado { background-color: var(--cor-primaria); color: #fff; font-weight: bold; border-color: var(--cor-primaria); }
-        
-        /* CÓDIGO CSS ADICIONADO PARA A BORDA AMARELA */
-        .dia.com-agendamento {
-            border-color: var(--cor-secundaria); /* Amarelo */
-        }
-
+        .dia.com-agendamento { border-color: var(--cor-secundaria); }
         .botao-horario { background-color: rgba(168, 85, 247, 0.1); color: var(--cor-texto); border: 1px solid var(--cor-primaria); padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
         .botao-horario:hover, .botao-horario.selecionado { background-color: var(--cor-primaria); }
-        .botao-horario.inativo { opacity: 0.4; cursor: not-allowed; background-color: transparent; border-color: #555; }
-        .botao-horario.inativo:hover { background-color: transparent; }
-        .botao-horario.ocupado { background-color: transparent; border-color: #dc3545; color: #dc3545; text-decoration: line-through; cursor: not-allowed; }
-        .botao-horario.ocupado:hover { background-color: transparent; color: #dc3545; }
-        .form-control { background-color: #2a2a3e; color: #fff; border: 1px solid var(--cor-primaria); }
-        .form-control[readonly] { background-color: #333; }
+        .botao-horario.inativo { opacity: 0.4; cursor: not-allowed; background-color: transparent; border-color: #555; } .botao-horario.inativo:hover { background-color: transparent; } .botao-horario.ocupado { background-color: transparent; border-color: #dc3545; color: #dc3545; text-decoration: line-through; cursor: not-allowed; } .botao-horario.ocupado:hover { background-color: transparent; color: #dc3545; }
+        .form-control { background-color: #2a2a3e; color: #fff; border: 1px solid var(--cor-primaria); } .form-control[readonly] { background-color: #333; }
         footer { background-color: #000; padding: 20px 0; text-align: center; color: #aaa; }
-        .map-responsive { overflow: hidden; padding-bottom: 56.25%; position: relative; height: 0; }
-        .map-responsive iframe { left: 0; top: 0; height: 100%; width: 100%; position: absolute; }
+        .map-responsive { overflow: hidden; padding-bottom: 56.25%; position: relative; height: 0; } .map-responsive iframe { left: 0; top: 0; height: 100%; width: 100%; position: absolute; }
     </style>
 </head>
 <body>
@@ -73,7 +64,7 @@ if (!$cortesResult) { die("Erro na consulta SQL: " . $conn->error); }
         <li class="nav-item"><a class="nav-link" href="#localizacao">Localização</a></li>
       </ul>
       <ul class="navbar-nav ms-auto align-items-center">
-        <li class="nav-item"><a href="#" class="nav-link"><i class="bi bi-instagram fs-4"></i></a></li>
+        <li class="nav-item"><a href="https://www.instagram.com/roxinhosbarber/"  target="_blank" class="nav-link"><i class="bi bi-instagram fs-4"></i></a></li>
         <li class="nav-item me-2"><a href="#" class="nav-link"><i class="bi bi-whatsapp fs-4"></i></a></li>
         
         <?php if (isset($_SESSION['usuario_id'])): ?>
@@ -86,7 +77,7 @@ if (!$cortesResult) { die("Erro na consulta SQL: " . $conn->error); }
                     <li><a class="dropdown-item" href="../views/usuario/meus_agendamentos.php"><i class="bi bi-calendar-check me-2"></i> Meus Agendamentos</a></li>
                     <?php if (isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] == 1): ?>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="../controllers/admin/dashboard.php"><i class="bi bi-shield-lock-fill me-2"></i> Painel Admin</a></li>
+                        <li><a class="dropdown-item" href="../views/admin/index.php"><i class="bi bi-shield-lock-fill me-2"></i> Painel Admin</a></li>
                     <?php endif; ?>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="../controllers/logout.php"><i class="bi bi-box-arrow-right me-2"></i> Sair</a></li>
@@ -101,27 +92,176 @@ if (!$cortesResult) { die("Erro na consulta SQL: " . $conn->error); }
 </nav>
 
 <main>
-    <section class="hero" id="inicio">
+<section class="hero d-flex" id="inicio">
         <div class="hero-content container">
+            
+            <!-- ============================================== -->
+            <!-- === ÁREA DE ALERTAS DE SUCESSO E ERRO === -->
+            <!-- ============================================== -->
+            <div class="position-absolute top-0 start-50 translate-middle-x p-3" style="z-index: 1050; width: 100%; max-width: 600px; margin-top: 60px;">
+            <?php if(isset($_GET['agendamento'])):
+                $status = $_GET['agendamento'];
+                $alert_class = ($status == 'sucesso') ? 'alert-success' : 'alert-danger';
+                $titulo = '';
+                $mensagem = '';
+
+                switch ($status) {
+                    case 'sucesso':
+                        $titulo = "Agendamento Confirmado!";
+                        $mensagem = "Seu horário foi reservado com sucesso. Nos vemos em breve!";
+                        break;
+                    case 'erro_ocupado':
+                        $titulo = "Horário Ocupado!";
+                        $mensagem = "Este dia e horário já foram agendados. Por favor, escolha outro.";
+                        break;
+                    case 'erro_passado':
+                        $titulo = "Data Inválida!";
+                        $mensagem = "Você não pode agendar um horário em uma data ou hora que já passou.";
+                        break;
+                    case 'erro_diadasemana':
+                        $titulo = "Dia Indisponível!";
+                        $mensagem = "Não abrimos aos Sábados, Domingos ou Segundas-feiras.";
+                        break;
+                    default:
+                        $titulo = "Ops! Algo deu errado.";
+                        $mensagem = "Não foi possível completar o agendamento. Tente novamente.";
+                        break;
+                }
+            ?>
+                <div class="alert <?php echo $alert_class; ?> alert-dismissible fade show" role="alert">
+                    <strong><?php echo $titulo; ?></strong> <?php echo $mensagem; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+            </div>
+
             <h2 class="animate__animated animate__fadeInDown">ROXINHO'S</h2>
             <h1 class="animate__animated animate__fadeInUp">BARBER</h1>
             <a href="#servicos" class="btn btn-purple mt-4">AGENDAR HORÁRIO</a>
         </div>
     </section>
-    <section id="roxinho"><div class="container text-center"><h2 class="section-title">Sobre a Barbearia</h2><p class="mt-4">Nossa barbearia é muito legal e divertida. Um espaço moderno e acolhedor, ideal para cuidar do visual com estilo e atitude.</p><h3 class="mt-5 text-warning">Nossa História</h3><p>Começamos com uma ideia simples: transformar o corte de cabelo em uma experiência. Hoje somos referência na região e continuamos crescendo com nossos clientes.</p></div></section>
+
+    <section id="roxinho"><div class="container text-center"><h2 class="section-title">Sobre a Barbearia</h2><p class="mt-4">Nossa barbearia é muito legal e divertida. Um espaço moderno e acolhedor, ideal para cuidar do visual com estilo e atitude.</p>
+    <h3 class="mt-5 text-warning">Nossa História</h3><p>Começamos com uma ideia simples: transformar o corte de cabelo em uma experiência. Hoje somos referência na região e continuamos crescendo com nossos clientes.</p></div></section>
+
     <section id="servicos" class="services bg-dark py-5">
       <div class="container text-center">
         <h2 class="section-title">Nossos Serviços</h2>
         <div class="row mt-5 justify-content-center">
             <?php while($corte = $cortesResult->fetch_assoc()): ?>
-                <div class="col-lg-4 col-md-6 mb-4"><a href="#" class="card h-100" data-bs-toggle="modal" data-bs-target="#agendamentoModal" data-corte-id="<?php echo $corte['corte_id']; ?>" data-corte-nome="<?php echo htmlspecialchars($corte['corte_nome']); ?>"><div class="card-body d-flex flex-column"><h4 class="card-title"><i class="bi bi-scissors"></i> <?php echo htmlspecialchars($corte['corte_nome']); ?></h4><p class="card-text text-white-50"><?php echo htmlspecialchars($corte['corte_descricao']); ?></p><strong class="text-warning mt-auto fs-5">R$ <?php echo number_format($corte['corte_preco'], 2, ',', '.'); ?></strong></div></a></div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <a href="#" class="card h-100" data-bs-toggle="modal" data-bs-target="#agendamentoModal" data-corte-id="<?php echo $corte['corte_id']; ?>" data-corte-nome="<?php echo htmlspecialchars($corte['corte_nome']); ?>">
+                        <div class="card-body d-flex flex-column">
+                            <h4 class="card-title"><i class="bi bi-scissors"></i> <?php echo htmlspecialchars($corte['corte_nome']); ?></h4>
+                            <p class="card-text text-white-50"><?php echo htmlspecialchars($corte['corte_descricao']); ?></p>
+                            <strong class="text-warning mt-auto fs-5">R$ <?php echo number_format($corte['corte_preco'], 2, ',', '.'); ?></strong>
+                        </div>
+                    </a>
+                </div>
             <?php endwhile; ?>
         </div>
       </div>
     </section>
-    <section id="galeria" class="gallery"> <div class="container text-center"><h2 class="section-title">Galeria</h2><p class="mb-4">Confira alguns dos nossos trabalhos recentes.</p><div id="carouselId" class="carousel slide" data-bs-ride="carousel"><div class="carousel-inner" role="listbox"><div class="carousel-item active"><img src="https://images.unsplash.com/photo-1599338263250-153355a297a9?w=500" class="w-100 d-block" style="height: 60vh; object-fit: cover;" alt="Corte 1"></div><div class="carousel-item"><img src="https://images.unsplash.com/photo-1621605815971-fbc333ab50a0?w=500" class="w-100 d-block" style="height: 60vh; object-fit: cover;" alt="Corte 2"></div><div class="carousel-item"><img src="https://images.unsplash.com/photo-1532710093739-947053e1a00c?w=500" class="w-100 d-block" style="height: 60vh; object-fit: cover;" alt="Corte 3"></div></div><button class="carousel-control-prev" type="button" data-bs-target="#carouselId" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span></button><button class="carousel-control-next" type="button" data-bs-target="#carouselId" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span></button></div></div></section>
-    <section id="localizacao" class="bg-dark"><div class="container text-center"><h2 class="section-title">Localização</h2><div class="map-responsive mt-4 mb-3">
-    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3653.2981086036326!2d-46.70278788501968!3d-23.69974208461427!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce52140e7f7e9f%3A0x3e3f4f6b2e3b3d1!2sR.%20Santa%20Z%C3%A9lia%2C%20234%20-%20Jardim%20Santa%20Z%C3%A9lia%2C%20S%C3%A3o%20Paulo%20-%20SP%2C%2004833-110!5e0!3m2!1spt-BR!2sbr!4v1678886543210!5m2!1spt-BR!2sbr" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe></div><p>R. Santa Zélia, 234 - Jardim Santa Zélia, São Paulo - SP, 04833-110</p></div></section>
+    
+<section id="galeria" class="gallery">
+            <div class="container text-center">
+                <h2 class="section-title">Galeria</h2>
+                <p class="mb-4">Confira alguns dos nossos trabalhos recentes.</p>
+                <div id="carouselId" class="carousel slide" data-bs-ride="carousel">
+                    <ol class="carousel-indicators">
+                        <li
+                            data-bs-target="#carouselId"
+                            data-bs-slide-to="0"
+                            class="active"
+                            aria-current="true"
+                            aria-label="First slide"
+                        ></li>
+                        <li
+                            data-bs-target="#carouselId"
+                            data-bs-slide-to="1"
+                            aria-label="Second slide"
+                        ></li>
+                        <li
+                            data-bs-target="#carouselId"
+                            data-bs-slide-to="2"
+                            aria-label="Third slide"
+                        ></li>
+                    </ol>
+                    <div class="carousel-inner" role="listbox">
+                        <div class="carousel-item active">
+                            <img
+                                src="assets/img/corte1.png"
+                                class="w-100 d-block"
+                                alt="First slide"
+                            />
+                        </div>
+                        <div class="carousel-item">
+                            <img
+                                src="assets/img/corte2.png"
+                                class="w-100 d-block"
+                                alt="Second slide"
+                            />
+                        </div>
+                        <div class="carousel-item">
+                            <img
+                                src="assets/img/corte3.png"
+                                class="w-100 d-block"
+                                alt="Third slide"
+                            />
+                        </div>
+                    </div>
+                    <button
+                        class="carousel-control-prev"
+                        type="button"
+                        data-bs-target="#carouselId"
+                        data-bs-slide="prev"
+                    >
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button
+                        class="carousel-control-next"
+                        type="button"
+                        data-bs-target="#carouselId"
+                        data-bs-slide="next"
+                    >
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                
+                <!--<div id="carouselId" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner" role="listbox">
+                        <div class="carousel-item active"><img
+                                src="app/public/images/corte1.png"
+                                class="w-100 d-block" style="height: 60vh; object-fit: cover;" alt="Corte 1"></div>
+                        <div class="carousel-item"><img
+                                src="app/public/images/corte2.png"
+                                class="w-100 d-block" style="height: 60vh; object-fit: cover;" alt="Corte 2"></div>
+                        <div class="carousel-item"><img
+                                src="app/public/images/corte3.png"
+                                class="w-100 d-block" style="height: 60vh; object-fit: cover;" alt="Corte 3"></div>
+                    </div><button class="carousel-control-prev" type="button" data-bs-target="#carouselId"
+                        data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span
+                            class="visually-hidden">Previous</span></button><button class="carousel-control-next"
+                        type="button" data-bs-target="#carouselId" data-bs-slide="next"><span
+                            class="carousel-control-next-icon" aria-hidden="true"></span><span
+                            class="visually-hidden">Next</span></button>
+                </div>!-->
+            </div>
+        </section>
+
+    <section id="localizacao" class="bg-dark">
+            <div class="container text-center">
+                <h2 class="section-title">Localização</h2>
+                <div class="map-responsive mt-4 mb-3">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3653.2981086036326!2d-46.70278788501968!3d-23.69974208461427!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce52140e7f7e9f%3A0x3e3f4f6b2e3b3d1!2sR.%20Santa%20Z%C3%A9lia%2C%20234%20-%20Jardim%20Santa%20Z%C3%A9lia%2C%20S%C3%A3o%20Paulo%20-%20SP%2C%2004833-110!5e0!3m2!1spt-BR!2sbr!4v1678886543210!5m2!1spt-BR!2sbr"
+                        width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+                <p>R. Santa Zélia, 234 - Jardim Santa Zélia, São Paulo - SP, 04833-110</p>
+            </div>
+        </section>
 </main>
 
 <div class="modal fade" id="agendamentoModal" tabindex="-1">
@@ -132,8 +272,17 @@ if (!$cortesResult) { die("Erro na consulta SQL: " . $conn->error); }
         <form action="../controllers/AgendamentoController.php" method="POST" id="formAgendamento">
             <input type="hidden" name="corte_id" id="modalCorteId"><input type="hidden" id="dataAgendamento" name="data_agendamento"><input type="hidden" id="horaAgendamento" name="hora_agendamento">
             <div class="row g-4">
-                <div class="col-md-7"><h5 id="servicoSelecionadoTitulo" class="text-warning mb-3"></h5><div class="datepicker-container"><div class="datepicker-header"><button type="button" class="datepicker-nav" id="mesAnterior"><</button><div id="mesAnoTitulo"></div><button type="button" class="datepicker-nav" id="mesSeguinte">></button></div><div id="diasDaSemana" class="d-flex justify-content-around mb-2"></div><div id="diasCalendario"></div></div></div>
-                <div class="col-md-5 border-start border-secondary" id="horariosView" style="display: none;"><h5>Horários Disponíveis</h5><p id="dataSelecionadaSubtitulo" class="text-white-50 small"></p><div id="horariosDisponiveis" class="d-grid gap-2"></div></div>
+                <div class="col-md-7">
+                    <h5 id="servicoSelecionadoTitulo" class="text-warning mb-3"></h5>
+                    <div class="datepicker-container">
+                        <div class="datepicker-header"><button type="button" class="datepicker-nav" id="mesAnterior">&lt;</button><div id="mesAnoTitulo"></div><button type="button" class="datepicker-nav" id="mesSeguinte">&gt;</button></div>
+                        <div id="diasDaSemana" class="d-flex justify-content-around mb-2"></div>
+                        <div id="diasCalendario"></div>
+                    </div>
+                </div>
+                <div class="col-md-5 border-start border-secondary" id="horariosView" style="display: none;">
+                    <h5>Horários Disponíveis</h5><p id="dataSelecionadaSubtitulo" class="text-white-50 small"></p><div id="horariosDisponiveis" class="d-grid gap-2"></div>
+                </div>
             </div>
         </form>
       </div>
@@ -148,45 +297,63 @@ if (!$cortesResult) { die("Erro na consulta SQL: " . $conn->error); }
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const agendamentoModal = document.getElementById('agendamentoModal'); let dataAtual = new Date();
+    
     agendamentoModal.addEventListener('show.bs.modal', function (event) {
         const isUserLoggedIn = <?php echo isset($_SESSION['usuario_id']) ? 'true' : 'false'; ?>;
-        if (!isUserLoggedIn) { event.preventDefault(); window.location.href = '../usuario/login.php?erro=precisa_logar'; return; }
+        if (!isUserLoggedIn) { event.preventDefault(); window.location.href = '../views/usuario/login.php?erro=precisa_logar'; return; }
         const button = event.relatedTarget;
         agendamentoModal.querySelector('#modalCorteId').value = button.getAttribute('data-corte-id');
         agendamentoModal.querySelector('#servicoSelecionadoTitulo').textContent = `Serviço: ${button.getAttribute('data-corte-nome')}`;
         dataAtual = new Date(); carregaCalendario(dataAtual.getFullYear(), dataAtual.getMonth() + 1);
     });
+    
     agendamentoModal.addEventListener('hidden.bs.modal', function() { resetModal(); });
     document.getElementById('mesAnterior').addEventListener('click', () => { dataAtual.setMonth(dataAtual.getMonth() - 1); carregaCalendario(dataAtual.getFullYear(), dataAtual.getMonth() + 1); });
     document.getElementById('mesSeguinte').addEventListener('click', () => { dataAtual.setMonth(dataAtual.getMonth() + 1); carregaCalendario(dataAtual.getFullYear(), dataAtual.getMonth() + 1); });
 
-    // AQUI ESTÁ A FUNÇÃO ATUALIZADA
     function carregaCalendario(ano, mes) {
-        resetSelecao(); document.getElementById('mesAnoTitulo').textContent = new Date(ano, mes - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
-        fetch(`../includes/funcoes.php?acao=carregaCalendario&ano=${ano}&mes=${mes}`)
+        resetSelecao(); 
+        document.getElementById('mesAnoTitulo').textContent = new Date(ano, mes - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+        
+        // CORREÇÃO: O fetch deve apontar para o api.php na pasta public
+        fetch(`api.php?acao=carregaCalendario&ano=${ano}&mes=${mes}`)
         .then(response => { if (!response.ok) { throw new Error('Erro de rede'); } return response.json(); })
         .then(data => {
             if (data.erro) { throw new Error(data.erro); }
             const diasCalendario = document.getElementById('diasCalendario'); const diasDaSemanaContainer = document.getElementById('diasDaSemana'); diasCalendario.innerHTML = '';
             if(diasDaSemanaContainer.innerHTML === '') { ['Do', 'Se', 'Te', 'Qa', 'Qi', 'Se', 'Sa'].forEach(dia => { diasDaSemanaContainer.innerHTML += `<div class="dia-semana">${dia}</div>`; }); }
-            const primeiroDia = new Date(ano, mes - 1, 1).getDay(); const totalDias = new Date(ano, mes, 0).getDate();
+            
+            const primeiroDia = new Date(ano, mes - 1, 1).getDay();
+            const totalDias = new Date(ano, mes, 0).getDate();
             for (let i = 0; i < primeiroDia; i++) { diasCalendario.innerHTML += '<div class="dia outro-mes"></div>'; }
+            
             const hoje = new Date(); hoje.setHours(0,0,0,0);
+            
             for (let dia = 1; dia <= totalDias; dia++) {
                 const diaEl = document.createElement('div'); diaEl.className = 'dia'; diaEl.textContent = dia;
                 const dataCompleta = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
                 const dataLoop = new Date(ano, mes - 1, dia);
+                const diaDaSemana = dataLoop.getDay(); // 0=Domingo, 1=Segunda, 6=Sábado
 
-                // Aplica a classe da borda amarela se o dia tiver agendamento
-                if (data.comAgendamento && data.comAgendamento.includes(dataCompleta)) {
-                    diaEl.classList.add('com-agendamento');
-                }
-
-                if (dataLoop < hoje || (data.inativos && data.inativos.includes(dataCompleta))) { 
-                    diaEl.classList.add('inativo'); 
-                } else { 
-                    diaEl.dataset.data = dataCompleta; 
-                    diaEl.addEventListener('click', selecionaDia); 
+                // ==========================================================
+                // LÓGICA DE BLOQUEIO ATUALIZADA
+                // ==========================================================
+                if (dataLoop < hoje) {
+                    diaEl.classList.add('inativo');
+                    diaEl.title = "Data passada";
+                } else if ([0, 1].includes(diaDaSemana)) { // 0=Domingo, 1=Segunda
+                    diaEl.classList.add('inativo');
+                    diaEl.title = "Não abrimos neste dia da semana";
+                } else if (data.inativos && data.inativos[dataCompleta]) {
+                    diaEl.classList.add('inativo');
+                    diaEl.title = data.inativos[dataCompleta]; // Mostra o motivo vindo do banco
+                } else {
+                    // Dia clicável
+                    if (data.comAgendamento && data.comAgendamento.includes(dataCompleta)) {
+                        diaEl.classList.add('com-agendamento');
+                    }
+                    diaEl.dataset.data = dataCompleta;
+                    diaEl.addEventListener('click', selecionaDia);
                 }
                 diasCalendario.appendChild(diaEl);
             }
@@ -194,59 +361,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function selecionaDia(event) {
-        document.querySelectorAll('.dia.selecionado').forEach(el => el.classList.remove('selecionado'));
-        event.target.classList.add('selecionado');
+        document.querySelectorAll('.dia.selecionado').forEach(el => el.classList.remove('selecionado')); event.target.classList.add('selecionado');
         const dataSelecionada = event.target.dataset.data;
-        document.getElementById('dataAgendamento').value = dataSelecionada;
-        document.getElementById('dataSelecionadaSubtitulo').textContent = new Date(dataSelecionada + 'T00:00:00').toLocaleDateString('pt-BR', { dateStyle: 'full' });
-        const agora = new Date();
-        const hojeString = agora.toISOString().split('T')[0];
-        const isHoje = (dataSelecionada === hojeString);
-        fetch(`../includes/funcoes.php?acao=buscaHorarios&data=${dataSelecionada}`)
+        document.getElementById('dataAgendamento').value = dataSelecionada; document.getElementById('dataSelecionadaSubtitulo').textContent = new Date(dataSelecionada + 'T00:00:00').toLocaleDateString('pt-BR', { dateStyle: 'full' });
+        
+        // CORREÇÃO: O fetch deve apontar para o api.php na pasta public
+        fetch(`api.php?acao=buscaHorarios&data=${dataSelecionada}`)
         .then(response => { if (!response.ok) { throw new Error('Erro de rede'); } return response.json(); })
         .then(data => {
-            const container = document.getElementById('horariosDisponiveis');
-            container.innerHTML = '';
-            if(!data.todosOsHorarios || data.todosOsHorarios.length === 0){
-                container.innerHTML = '<p class="text-white-50">Não há horários de trabalho definidos para este dia.</p>';
-            } else { 
+            const container = document.getElementById('horariosDisponiveis'); container.innerHTML = '';
+            if(!data.todosOsHorarios || data.todosOsHorarios.length === 0){ container.innerHTML = '<p class="text-white-50">Não há horários definidos.</p>'; }
+            else { 
                 data.todosOsHorarios.forEach(horario => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'botao-horario w-100';
-                    btn.textContent = horario;
-                    btn.dataset.hora = horario;
+                    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'botao-horario w-100'; btn.textContent = horario; btn.dataset.hora = horario;
                     const isOcupado = data.horariosOcupados && data.horariosOcupados.includes(horario);
-                    let horarioPassou = false;
-                    if (isHoje) {
-                        const [horas, minutos] = horario.split(':');
-                        const horarioDoAgendamento = new Date();
-                        horarioDoAgendamento.setHours(horas, minutos, 0, 0);
-                        if (horarioDoAgendamento < agora) {
-                            horarioPassou = true;
-                        }
+                    let horarioPassou = false; const agora = new Date(); const hojeString = agora.toISOString().split('T')[0];
+                    if (dataSelecionada === hojeString) {
+                        const [horas, minutos] = horario.split(':'); const horarioDoBotao = new Date(); horarioDoBotao.setHours(horas, minutos, 0, 0);
+                        if (horarioDoBotao < agora) horarioPassou = true;
                     }
-                    if (isOcupado) {
-                        btn.classList.add('ocupado');
-                        btn.disabled = true;
-                    } else if (horarioPassou) {
-                        btn.classList.add('inativo');
-                        btn.disabled = true;
-                    } else {
-                        btn.addEventListener('click', selecionaHorario);
-                    }
+                    if (isOcupado) { btn.classList.add('ocupado'); btn.disabled = true; } 
+                    else if (horarioPassou) { btn.classList.add('inativo'); btn.disabled = true; } 
+                    else { btn.addEventListener('click', selecionaHorario); }
                     container.appendChild(btn); 
                 }); 
             }
-            document.getElementById('horariosView').style.display = 'block';
-            document.getElementById('horaAgendamento').value = '';
-            document.getElementById('btnConfirmar').disabled = true;
-        }).catch(error => {
-            console.error('Erro ao buscar horários:', error);
-            document.getElementById('horariosDisponiveis').innerHTML = '<p class="text-danger">Erro ao carregar horários.</p>';
-        });
+            document.getElementById('horariosView').style.display = 'block'; document.getElementById('horaAgendamento').value = ''; document.getElementById('btnConfirmar').disabled = true;
+        }).catch(error => { console.error('Erro ao buscar horários:', error); document.getElementById('horariosDisponiveis').innerHTML = '<p class="text-danger">Erro ao carregar horários.</p>'; });
     }
-
+    
     function selecionaHorario(event){ document.querySelectorAll('.botao-horario.selecionado').forEach(el => el.classList.remove('selecionado')); event.target.classList.add('selecionado'); document.getElementById('horaAgendamento').value = event.target.dataset.hora; document.getElementById('btnConfirmar').disabled = false; }
     function resetSelecao(){ document.getElementById('horariosView').style.display = 'none'; document.getElementById('horariosDisponiveis').innerHTML = ''; document.getElementById('btnConfirmar').disabled = true; }
     function resetModal() { resetSelecao(); document.getElementById('formAgendamento').reset(); }

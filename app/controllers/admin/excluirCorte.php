@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // BLOQUEIO DE SEGURANÇA
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] != 1) {
-    header("Location: ../usuario/login.php?erro=acessonegado");
+    header("Location: ../../views/usuario/login.php?erro=acessonegado");
     exit();
 }
 
@@ -21,13 +21,13 @@ if ($corte_id) {
     $stmt->bind_param("i", $corte_id);
 
     if ($stmt->execute()) {
-        header("Location: cortes.php?sucesso=excluido");
+        header("Location: ../../views/admin/cortes.php?sucesso=excluido");
     } else {
-        header("Location: cortes.php?erro=falha_excluir");
+        header("Location: ../../views/admin/cortes.php?erro=falha_excluir");
     }
     $stmt->close();
 } else {
-    header("Location: cortes.php?erro=id_invalido");
+    header("Location: ../../views/admin/cortes.php?erro=id_invalido");
 }
 
 $conn->close();
